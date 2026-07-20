@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { SearchBar } from "@/components/public/search-bar";
 import { ProductCard } from "@/components/public/product-card";

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+export const dynamic = "force-dynamic";
 import { formatCurrency, isSCCode } from "@/lib/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
