@@ -1,0 +1,376 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MovementType {
+  purchase
+  delivery_to_location
+  sale
+  return
+  conversion_to_gift
+  adjustment
+}
+
+enum ReportStatus {
+  pending
+  confirmed
+  reconciled
+}
+
+enum UserRole {
+  admin
+  viewer
+}
+
+enum LocationType {
+  collectivo
+  tienda
+  bodega
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Brand {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  products  Product[]
+
+  @@map("brands")
+}
+
+model Product {
+  id           Int       @id @default(autoincrement())
+  codigo       String    @unique
+  name         String
+  slug         String    @unique
+  description  String?
+  olfactoryNotes String?  @map("olfactory_notes")
+  categoryId   Int?      @map("category_id")
+  brandId      Int?      @map("brand_id")
+  isGift       Boolean   @default(false) @map("is_gift")
+  isFullBottle Boolean   @default(false) @map("is_full_bottle")
+  isSupply     Boolean   @default(false) @map("is_supply")
+  notes          String?
+  active         Boolean   @default(true)
+  showInCatalog  Boolean   @default(true) @map("show_in_catalog")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  category        Category?          @relation(fields: [categoryId], references: [id])
+  brand           Brand?             @relation(fields: [brandId], references: [id])
+  variants        ProductVariant[]
+  images          ProductImage[]
+  giftConversions GiftConversion[]
+
+  @@map("products")
+}
+
+model Presentation {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  unitType  String?   @map("unit_type")
+  unitValue Decimal?  @map("unit_value")
+  quantity  Int       @default(1)
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at")
+  variants          ProductVariant[]
+  giftConversions   GiftConversion[]
+
+  @@map("presentations")
+}
+
+model ProductVariant {
+  id             Int       @id @default(autoincrement())
+  codigo         String    @unique
+  productId      Int       @map("product_id")
+  presentationId Int       @map("presentation_id")
+  sku            String?
+  barcode        String?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  product            Product              @relation(fields: [productId], references: [id])
+  presentation       Presentation         @relation(fields: [presentationId], references: [id])
+  costs              Cost[]
+  priceHistories     PriceHistory[]
+  purchaseItems      PurchaseOrderItem[]
+  globalInventory    GlobalInventory?
+  movements          InventoryMovement[]
+  locationInventory  LocationInventory[]
+  deliveryItems      DeliveryItem[]
+  saleItems          SaleReportItem[]
+  giftConversions    GiftConversion[]
+
+  @@unique([productId, presentationId])
+  @@map("product_variants")
+}
+
+model Cost {
+  id            Int       @id @default(autoincrement())
+  variantId     Int       @map("variant_id")
+  unitCost      Decimal   @map("unit_cost")
+  suppliesCost  Decimal   @default(733) @map("supplies_cost")
+  shippingCost  Decimal   @default(185) @map("shipping_cost")
+  netCost       Decimal?  @map("net_cost")
+  pricePerMl    Decimal?  @map("price_per_ml")
+  basePrice5ml  Decimal?  @map("base_price_5ml")
+  basePrice10ml Decimal?  @map("base_price_10ml")
+  finalPrice    Decimal   @map("final_price")
+  effectiveDate DateTime  @default(now()) @map("effective_date")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("costs")
+}
+
+model PriceHistory {
+  id        Int       @id @default(autoincrement())
+  variantId Int       @map("variant_id")
+  oldPrice  Decimal?  @map("old_price")
+  newPrice  Decimal?  @map("new_price")
+  reason    String?
+  changedBy String?   @map("changed_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("price_history")
+}
+
+model Supplier {
+  id        Int       @id @default(autoincrement())
+  name      String
+  contact   String?
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id          Int       @id @default(autoincrement())
+  supplierId  Int?      @map("supplier_id")
+  orderNumber String?   @map("order_number")
+  orderDate   DateTime  @default(now()) @map("order_date")
+  totalCost   Decimal?  @map("total_cost")
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  supplier Supplier?          @relation(fields: [supplierId], references: [id])
+  items    PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id        Int       @id @default(autoincrement())
+  poId      Int       @map("po_id")
+  variantId Int       @map("variant_id")
+  quantity  Int
+  unitCost  Decimal   @map("unit_cost")
+
+  po      PurchaseOrder  @relation(fields: [poId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+model Location {
+  id        Int          @id @default(autoincrement())
+  name      String
+  slug      String       @unique
+  type      LocationType @default(collectivo)
+  address   String?
+  contact   String?
+  phone     String?
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  movements          InventoryMovement[]
+  locationInventory  LocationInventory[]
+  deliveries         LocationDelivery[]
+  salesReports       SalesReport[]
+
+  @@map("locations")
+}
+
+model GlobalInventory {
+  id        Int      @id @default(autoincrement())
+  variantId Int      @unique @map("variant_id")
+  quantity  Int      @default(0)
+  minStock  Int      @default(0) @map("min_stock")
+  maxStock  Int?     @map("max_stock")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("global_inventory")
+}
+
+model InventoryMovement {
+  id            Int           @id @default(autoincrement())
+  variantId     Int           @map("variant_id")
+  movementType  MovementType  @map("movement_type")
+  quantity      Int
+  referenceType String?       @map("reference_type")
+  referenceId   Int?          @map("reference_id")
+  locationId    Int?          @map("location_id")
+  notes         String?
+  createdBy     String?       @map("created_by")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  variant  ProductVariant @relation(fields: [variantId], references: [id])
+  location Location?       @relation(fields: [locationId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+model LocationInventory {
+  id         Int      @id @default(autoincrement())
+  locationId Int      @map("location_id")
+  variantId  Int      @map("variant_id")
+  quantity   Int      @default(0)
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  location Location        @relation(fields: [locationId], references: [id])
+  variant  ProductVariant  @relation(fields: [variantId], references: [id])
+
+  @@unique([locationId, variantId])
+  @@map("location_inventory")
+}
+
+model LocationDelivery {
+  id           Int      @id @default(autoincrement())
+  locationId   Int      @map("location_id")
+  deliveryDate DateTime @default(now()) @map("delivery_date")
+  period       String?
+  notes        String?
+  createdBy    String?  @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  location Location       @relation(fields: [locationId], references: [id])
+  items    DeliveryItem[]
+
+  @@map("location_deliveries")
+}
+
+model DeliveryItem {
+  id         Int      @id @default(autoincrement())
+  deliveryId Int      @map("delivery_id")
+  variantId  Int      @map("variant_id")
+  quantity   Int
+  unitCost   Decimal  @map("unit_cost")
+
+  delivery LocationDelivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  variant  ProductVariant   @relation(fields: [variantId], references: [id])
+
+  @@map("delivery_items")
+}
+
+model SalesReport {
+  id         Int          @id @default(autoincrement())
+  locationId Int          @map("location_id")
+  reportDate DateTime     @default(now()) @map("report_date")
+  period     String?
+  status     ReportStatus @default(pending)
+  notes      String?
+  createdBy  String?      @map("created_by")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  location Location          @relation(fields: [locationId], references: [id])
+  items    SaleReportItem[]
+
+  @@map("sales_reports")
+}
+
+model SaleReportItem {
+  id           Int      @id @default(autoincrement())
+  reportId     Int      @map("report_id")
+  variantId    Int      @map("variant_id")
+  quantitySold Int      @map("quantity_sold")
+  unitPrice    Decimal  @map("unit_price")
+
+  report  SalesReport    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("sale_report_items")
+}
+
+model GiftConversion {
+  id                 Int           @id @default(autoincrement())
+  productId          Int           @map("product_id")
+  variantId          Int?          @map("variant_id")
+  quantityMl         Decimal?      @map("quantity_ml")
+  isFullBottle       Boolean       @default(false) @map("is_full_bottle")
+  giftPresentationId Int?          @map("gift_presentation_id")
+  estimatedUnits     Int?          @map("estimated_units")
+  reason             String?
+  convertedAt        DateTime      @default(now()) @map("converted_at")
+  createdBy          String?       @map("created_by")
+
+  product          Product            @relation(fields: [productId], references: [id])
+  variant          ProductVariant?    @relation(fields: [variantId], references: [id])
+  giftPresentation Presentation?      @relation(fields: [giftPresentationId], references: [id])
+
+  @@map("gift_conversions")
+}
+
+model ProductImage {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  url       String
+  altText   String?  @map("alt_text")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  fullName     String?   @map("full_name")
+  role         UserRole  @default(admin)
+  active       Boolean   @default(true)
+  lastLogin    DateTime? @map("last_login")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model SystemConfig {
+  id                    Int      @id @default(autoincrement())
+  standardSuppliesCost  Decimal  @default(733) @map("standard_supplies_cost")
+  standardShippingCost  Decimal  @default(185) @map("standard_shipping_cost")
+  posFeePercentage      Decimal  @default(7.00) @map("pos_fee_percentage")
+  currency              String   @default("Córdobas")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("system_config")
+}
