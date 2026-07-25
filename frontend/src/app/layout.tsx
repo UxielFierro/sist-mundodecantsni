@@ -24,6 +24,10 @@ export const metadata: Metadata = {
     "nicho",
     "diseñador",
   ],
+  icons: {
+    icon: "/images/logo-icon.png",
+    apple: "/images/logo-icon.png",
+  },
 };
 
 export default function RootLayout({
