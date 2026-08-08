@@ -165,7 +165,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badgeColor}`}>
                           {product.category?.name || "General"}
                         </span>
-                        {product.isFullBottle && (
+                        {(product.isFullBottle || product.isSupply) && (
                           <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-mono tracking-wider bg-muted/50 px-2 py-0.5 rounded-full">
                             <span>{product.codigo}</span>
                             {isSCCode(product.codigo) && (
@@ -212,7 +212,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                     </div>
                   )}
 
-                  {variants.length > 0 && (
+                  {product.variants.length > 0 && (
                     <div>
                       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3 flex items-center gap-1.5">
                         <Award className="h-3 w-3" />

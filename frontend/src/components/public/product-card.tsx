@@ -10,15 +10,20 @@ interface ProductCardData {
   brand: { name: string } | null;
   images: { url: string }[];
   variants: {
-    presentation: { slug: string };
+    id: number;
+    presentation: { slug: string; name: string };
     costs: { finalPrice: unknown }[];
     globalInventory: { quantity: number } | null;
   }[];
 }
 
 export function ProductCard({ product }: { product: ProductCardData }) {
-  const v5 = product.variants.find((v) => v.presentation.slug === "5ml");
-  const v10 = product.variants.find((v) => v.presentation.slug === "10ml");
+  const pricedVariants = product.variants.filter((v) => v.costs[0]);
+  const v5 = pricedVariants.find((v) => v.presentation.slug === "5ml");
+  const v10 = pricedVariants.find((v) => v.presentation.slug === "10ml");
+  const otherPriced = pricedVariants.filter(
+    (v) => v.presentation.slug !== "5ml" && v.presentation.slug !== "10ml"
+  );
   const hasStock = product.variants.some((v) => (v.globalInventory?.quantity ?? 0) > 0);
 
   return (
@@ -75,7 +80,12 @@ export function ProductCard({ product }: { product: ProductCardData }) {
               10ml: {formatCurrency(Number(v10.costs[0].finalPrice))}
             </span>
           )}
-          {!v5?.costs[0] && !v10?.costs[0] && (
+          {otherPriced.slice(0, 3).map((v) => (
+            <span key={v.id} className="text-[11px] font-semibold text-primary">
+              {v.presentation.name}: {formatCurrency(Number(v.costs[0].finalPrice))}
+            </span>
+          ))}
+          {pricedVariants.length === 0 && (
             <span className="text-[10px] text-muted-foreground">Consultar precio</span>
           )}
         </div>
