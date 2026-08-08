@@ -198,7 +198,7 @@ export function NewDeliveryForm({
                           <input
                             id={`qty-${v.id}`}
                             type="number"
-                            min="1"
+                            min="0"
                             max={stock}
                             defaultValue="0"
                             className="w-14 text-center border rounded px-1 py-1 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary/50"
