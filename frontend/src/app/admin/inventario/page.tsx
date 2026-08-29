@@ -47,13 +47,25 @@ export default async function InventoryPage({
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  // Only fetch uninitialized variants when not searching (or on page 1)
-  const variants = !search && currentPage === 1
+  // Fetch uninitialized variants that match search (or all when not searching on page 1)
+  const fetchUninitialized = !search && currentPage === 1 || search;
+  const variants = fetchUninitialized
     ? await prisma.productVariant.findMany({
-        where: { active: true, globalInventory: null },
+        where: {
+          active: true,
+          globalInventory: null,
+          ...(search
+            ? {
+                OR: [
+                  { codigo: { contains: search, mode: "insensitive" } },
+                  { product: { name: { contains: search, mode: "insensitive" } } },
+                ],
+              }
+            : {}),
+        },
         include: { product: true, presentation: true },
         orderBy: { codigo: "asc" },
-        take: 20,
+        take: search ? 50 : 20,
       })
     : [];
 
