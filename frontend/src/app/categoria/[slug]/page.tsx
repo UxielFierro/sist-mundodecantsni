@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SearchBar } from "@/components/public/search-bar";
 import { ProductCard } from "@/components/public/product-card";
-import { ArrowLeft, FileDown, Package, Sparkles, SprayCan as Spray, FlaskConical, ShieldCheck } from "lucide-react";
+import { PublicHeader } from "@/components/public/public-header";
+import { PublicFooter } from "@/components/public/public-footer";
+import { ArrowLeft, Package, Sparkles, SprayCan as Spray, FlaskConical } from "lucide-react";
 
 const categoryIcons: Record<string, typeof Sparkles> = {
   nicho: Sparkles,
@@ -70,72 +71,52 @@ export default async function CategoryPage({
 
   return (
     <>
-      <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">Mundo Decants Nicaragua</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-1">
-            <Link href="/" className="text-sm font-medium px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+      <PublicHeader />
+
+      <main className="flex-1 bg-stone-50/20 min-h-[70vh]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-16">
+          <nav className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground/60 mb-10">
+            <Link href="/" className="hover:text-foreground transition-colors">
               Inicio
             </Link>
-            <span className="text-sm font-medium px-3 py-2 text-primary">{category.name}</span>
+            <span>/</span>
+            <span className="text-foreground">{category.name}</span>
           </nav>
-          <div className="flex items-center gap-2">
-            <SearchBar />
-            <a
-              href="/catalogo.pdf"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary border border-input hover:border-primary/50 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <FileDown className="h-3.5 w-3.5" />
-              Catálogo PDF
-            </a>
-          </div>
-        </div>
-      </header>
 
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
-          </Link>
-
-          <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 rounded-xl bg-primary/5">
-              <Icon className="h-6 w-6 text-primary" />
+          <div className="flex flex-col items-center justify-center text-center mb-16">
+            <div className="mb-6 text-gold">
+              <Icon className="h-10 w-10 stroke-[1]" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">{category.name}</h1>
-              {category.description && (
-                <p className="text-muted-foreground mt-0.5">{category.description}</p>
-              )}
-              <p className="text-xs text-muted-foreground/60 mt-1">{total} productos</p>
-            </div>
+            <h1 className="text-4xl lg:text-5xl font-serif font-medium tracking-tight mb-4">
+              {category.name}
+            </h1>
+            {category.description && (
+              <p className="text-muted-foreground/80 font-light max-w-2xl mx-auto mb-4">
+                {category.description}
+              </p>
+            )}
+            <div className="w-12 h-[1px] bg-gold mx-auto mb-4" />
+            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
+              {total} fragancias disponibles
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-8 text-sm">
-              <p className="text-muted-foreground">
-                Página {currentPage} de {totalPages} ({total} productos)
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-16 pt-8 border-t border-border/50 text-sm">
+              <p className="text-muted-foreground/60 font-light mb-4 sm:mb-0">
+                Mostrando página {currentPage} de {totalPages}
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {currentPage > 1 && (
                   <Link
                     href={{ pathname: `/categoria/${slug}`, query: { ...(search && { q: search }), page: String(currentPage - 1) } }}
-                    className="px-3 py-1.5 border rounded-lg hover:bg-accent"
+                    className="px-5 py-2.5 border border-border/60 rounded-none bg-white hover:border-gold hover:text-gold transition-colors text-xs uppercase tracking-widest"
                   >
                     Anterior
                   </Link>
@@ -143,7 +124,7 @@ export default async function CategoryPage({
                 {currentPage < totalPages && (
                   <Link
                     href={{ pathname: `/categoria/${slug}`, query: { ...(search && { q: search }), page: String(currentPage + 1) } }}
-                    className="px-3 py-1.5 border rounded-lg hover:bg-accent"
+                    className="px-5 py-2.5 border border-border/60 rounded-none bg-white hover:border-gold hover:text-gold transition-colors text-xs uppercase tracking-widest"
                   >
                     Siguiente
                   </Link>
@@ -153,23 +134,19 @@ export default async function CategoryPage({
           )}
 
           {products.length === 0 && (
-            <div className="text-center py-20 text-muted-foreground">
-              <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p>
+            <div className="text-center py-32 text-muted-foreground/50">
+              <Package className="h-10 w-10 mx-auto mb-4 opacity-30 stroke-[1]" />
+              <p className="font-light">
                 {search
-                  ? `No se encontraron productos que coincidan con "${search}"`
-                  : "No hay productos en esta categoría"}
+                  ? `No se encontraron resultados para "${search}"`
+                  : "Próximamente más productos en esta categoría"}
               </p>
             </div>
           )}
         </div>
       </main>
 
-      <footer className="border-t py-10 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center text-sm text-muted-foreground/60">
-          <p>&copy; {new Date().getFullYear()} Mundo Decants Nicaragua. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      <PublicFooter />
     </>
   );
 }

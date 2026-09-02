@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { SearchBar } from "@/components/public/search-bar";
 import { ProductCard } from "@/components/public/product-card";
-import { ArrowLeft, FileDown, ShieldCheck, Search, X } from "lucide-react";
+import { PublicHeader } from "@/components/public/public-header";
+import { PublicFooter } from "@/components/public/public-footer";
+import { Search, X } from "lucide-react";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -58,76 +59,51 @@ export default async function SearchPage({
 
   return (
     <>
-      <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">Mundo Decants Nicaragua</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-1">
-            <Link href="/" className="text-sm font-medium px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+      <PublicHeader />
+
+      <main className="flex-1 bg-stone-50/20 min-h-[70vh]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 lg:py-16">
+          <nav className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground/60 mb-10">
+            <Link href="/" className="hover:text-foreground transition-colors">
               Inicio
             </Link>
+            <span>/</span>
+            <span className="text-foreground">Búsqueda</span>
           </nav>
-          <div className="flex items-center gap-2">
-            <SearchBar />
-            <a
-              href="/catalogo.pdf"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary border border-input hover:border-primary/50 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <FileDown className="h-3.5 w-3.5" />
-              Catálogo PDF
-            </a>
-          </div>
-        </div>
-      </header>
 
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
-          </Link>
-
-          <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 rounded-xl bg-primary/5">
-              <Search className="h-6 w-6 text-primary" />
+          <div className="flex flex-col items-center justify-center text-center mb-16">
+            <div className="mb-6 text-gold">
+              <Search className="h-8 w-8 stroke-[1.5]" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {query ? `Resultados para "${query}"` : "Buscar productos"}
-              </h1>
-              <p className="text-muted-foreground mt-0.5">
-                {query
-                  ? `${total} producto${total !== 1 ? "s" : ""} encontrado${total !== 1 ? "s" : ""}`
-                  : "Escribe algo en el buscador para encontrar productos"}
-              </p>
-            </div>
+            <h1 className="text-3xl lg:text-4xl font-serif font-medium tracking-tight mb-4">
+              {query ? `Resultados para "${query}"` : "Buscar Fragancias"}
+            </h1>
+            <p className="text-muted-foreground/80 font-light max-w-2xl mx-auto mb-4">
+              {query
+                ? `${total} producto${total !== 1 ? "s" : ""} encontrado${total !== 1 ? "s" : ""}`
+                : "Escribe algo en el buscador superior para encontrar la fragancia que deseas."}
+            </p>
+            <div className="w-12 h-[1px] bg-gold mx-auto" />
           </div>
 
           {products.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-10">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-8 text-sm">
-                  <p className="text-muted-foreground">
-                    Página {currentPage} de {totalPages} ({total} productos)
+                <div className="flex flex-col sm:flex-row items-center justify-between mt-16 pt-8 border-t border-border/50 text-sm">
+                  <p className="text-muted-foreground/60 font-light mb-4 sm:mb-0">
+                    Mostrando página {currentPage} de {totalPages}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {currentPage > 1 && (
                       <Link
                         href={{ pathname: "/buscar", query: { q: query, page: String(currentPage - 1) } }}
-                        className="px-3 py-1.5 border rounded-lg hover:bg-accent"
+                        className="px-5 py-2.5 border border-border/60 rounded-none bg-white hover:border-gold hover:text-gold transition-colors text-xs uppercase tracking-widest"
                       >
                         Anterior
                       </Link>
@@ -135,7 +111,7 @@ export default async function SearchPage({
                     {currentPage < totalPages && (
                       <Link
                         href={{ pathname: "/buscar", query: { q: query, page: String(currentPage + 1) } }}
-                        className="px-3 py-1.5 border rounded-lg hover:bg-accent"
+                        className="px-5 py-2.5 border border-border/60 rounded-none bg-white hover:border-gold hover:text-gold transition-colors text-xs uppercase tracking-widest"
                       >
                         Siguiente
                       </Link>
@@ -145,25 +121,18 @@ export default async function SearchPage({
               )}
             </>
           ) : query ? (
-            <div className="text-center py-20 text-muted-foreground">
-              <X className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p>No se encontraron productos que coincidan con &ldquo;{query}&rdquo;</p>
-              <p className="text-sm mt-1">Intentá con otro término</p>
+            <div className="text-center py-20 text-muted-foreground/50">
+              <X className="h-10 w-10 mx-auto mb-4 opacity-30 stroke-[1]" />
+              <p className="font-light mb-1">
+                No se encontraron fragancias que coincidan con &ldquo;{query}&rdquo;
+              </p>
+              <p className="text-xs uppercase tracking-[0.1em]">Intentá con otra nota olfativa o marca</p>
             </div>
-          ) : (
-            <div className="text-center py-20 text-muted-foreground">
-              <Search className="h-10 w-10 mx-auto mb-3 opacity-30" />
-              <p>Usá el buscador del header para encontrar productos</p>
-            </div>
-          )}
+          ) : null}
         </div>
       </main>
 
-      <footer className="border-t py-10 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center text-sm text-muted-foreground/60">
-          <p>&copy; {new Date().getFullYear()} Mundo Decants Nicaragua. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      <PublicFooter />
     </>
   );
 }

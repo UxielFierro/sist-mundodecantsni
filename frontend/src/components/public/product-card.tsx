@@ -1,4 +1,4 @@
-import { formatCurrency, isSCCode } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -29,64 +29,67 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   return (
     <Link
       href={`/perfume/${product.slug}`}
-      className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all block"
+      className="group block"
     >
-      <div className="aspect-square bg-gradient-to-br from-primary/[0.03] to-primary/[0.06] flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="aspect-[4/5] bg-gradient-to-b from-stone-50 to-stone-100/80 rounded-xl overflow-hidden relative mb-3">
         {product.images[0] ? (
           <Image
             src={product.images[0].url}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 200px"
-            className="object-contain transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 250px"
+            className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="text-4xl text-muted-foreground/20 font-bold select-none">
-            {product.name.charAt(0)}
+          <div className="flex items-center justify-center h-full">
+            <span className="text-5xl text-stone-200 font-serif font-light select-none">
+              {product.name.charAt(0)}
+            </span>
           </div>
         )}
         {!hasStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[1px]">
-            <span className="text-white font-bold text-xs tracking-widest bg-red-600/90 px-3 py-1.5 rounded-md shadow-lg">
-              SOLD OUT
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="text-white text-[10px] tracking-[0.25em] font-light border border-white/40 px-4 py-2 uppercase">
+              Agotado
             </span>
           </div>
         )}
       </div>
-      <div className="p-3 space-y-1.5">
-        <p className="text-[10px] text-muted-foreground font-mono tracking-wider">
-          {product.codigo}
-          {isSCCode(product.codigo) && <span className="ml-1 text-[8px] font-medium text-yellow-700 bg-yellow-100 px-1 py-0.5 rounded">SC</span>}
-        </p>
-        <h3 className="font-semibold text-xs leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+      <div className="space-y-1 px-0.5">
+        {product.brand && (
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.15em]">
+            {product.brand.name}
+          </p>
+        )}
+        <h3 className="font-medium text-sm leading-snug line-clamp-2 group-hover:text-gold transition-colors duration-300">
           {product.name}
         </h3>
-        {product.brand && (
-          <p className="text-[10px] text-muted-foreground/70">{product.brand.name}</p>
-        )}
         {product.olfactoryNotes && (
-          <p className="text-[9px] text-muted-foreground/40 italic leading-tight line-clamp-1">
+          <p className="text-[10px] text-muted-foreground/50 italic leading-tight line-clamp-1">
             {product.olfactoryNotes}
           </p>
         )}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pt-0.5">
+        <div className="flex items-center gap-2 pt-0.5">
           {v5?.costs[0] && (
-            <span className="text-[11px] font-semibold text-primary">
-              5ml: {formatCurrency(Number(v5.costs[0].finalPrice))}
+            <span className="text-xs font-medium text-gold">
+              5ml {formatCurrency(Number(v5.costs[0].finalPrice))}
             </span>
+          )}
+          {v5?.costs[0] && v10?.costs[0] && (
+            <span className="text-stone-300 text-xs">·</span>
           )}
           {v10?.costs[0] && (
-            <span className="text-[11px] font-semibold text-primary">
-              10ml: {formatCurrency(Number(v10.costs[0].finalPrice))}
+            <span className="text-xs font-medium text-gold">
+              10ml {formatCurrency(Number(v10.costs[0].finalPrice))}
             </span>
           )}
-          {otherPriced.slice(0, 3).map((v) => (
-            <span key={v.id} className="text-[11px] font-semibold text-primary">
-              {v.presentation.name}: {formatCurrency(Number(v.costs[0].finalPrice))}
+          {otherPriced.slice(0, 2).map((v) => (
+            <span key={v.id} className="text-xs font-medium text-gold">
+              {v.presentation.name} {formatCurrency(Number(v.costs[0].finalPrice))}
             </span>
           ))}
           {pricedVariants.length === 0 && (
-            <span className="text-[10px] text-muted-foreground">Consultar precio</span>
+            <span className="text-[10px] text-muted-foreground/60 italic">Consultar precio</span>
           )}
         </div>
       </div>

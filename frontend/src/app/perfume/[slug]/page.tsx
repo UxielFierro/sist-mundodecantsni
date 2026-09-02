@@ -1,46 +1,12 @@
 import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
-import { formatCurrency, isSCCode } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Package, Sparkles, FlaskConical, SprayCan as Spray, ShieldCheck, MessageCircle, Camera, FileDown, Droplets, Award } from "lucide-react";
-
-const categoryIcon: Record<string, typeof Sparkles> = {
-  nicho: Sparkles,
-  disenador: Spray,
-  arabe: FlaskConical,
-  damas: Sparkles,
-  insumos: Package,
-};
-
-function getCategoryGradient(slug?: string): string {
-  switch (slug) {
-    case "nicho": return "from-amber-50 to-amber-100/50";
-    case "disenador": return "from-blue-50 to-blue-100/50";
-    case "arabe": return "from-emerald-50 to-emerald-100/50";
-    case "insumos": return "from-slate-50 to-slate-100/50";
-    default: return "from-primary/5 to-primary/[0.02]";
-  }
-}
-
-function getCategoryBorder(slug?: string): string {
-  switch (slug) {
-    case "nicho": return "border-amber-200/50";
-    case "disenador": return "border-blue-200/50";
-    case "arabe": return "border-emerald-200/50";
-    default: return "border-border";
-  }
-}
-
-function getBadgeColor(slug?: string): string {
-  switch (slug) {
-    case "nicho": return "bg-amber-100 text-amber-800 border-amber-200";
-    case "disenador": return "bg-blue-100 text-blue-800 border-blue-200";
-    case "arabe": return "bg-emerald-100 text-emerald-800 border-emerald-200";
-    default: return "bg-primary/10 text-primary";
-  }
-}
+import { ArrowLeft, MessageCircle, Camera, Droplets } from "lucide-react";
+import { PublicHeader } from "@/components/public/public-header";
+import { PublicFooter } from "@/components/public/public-footer";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -83,234 +49,176 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
   if (!product) notFound();
 
   const isSupply = product.isSupply;
-  const gradient = product.category ? getCategoryGradient(product.category.slug) : "from-primary/5 to-primary/[0.02]";
-  const borderColor = product.category ? getCategoryBorder(product.category.slug) : "border-border";
-  const badgeColor = product.category ? getBadgeColor(product.category.slug) : "bg-primary/10 text-primary";
-
   const variants = product.variants.filter((v) => ["5ml", "10ml", "2ml", "25ml"].includes(v.presentation.slug));
   const otherVariants = product.variants.filter((v) => !["5ml", "10ml", "2ml", "25ml"].includes(v.presentation.slug));
   const hasStock = product.variants.some((v) => (v.globalInventory?.quantity ?? 0) > 0);
-  const totalStock = product.variants.reduce((acc, v) => acc + (v.globalInventory?.quantity ?? 0), 0);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="p-1 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <ShieldCheck className="h-4 w-4 text-primary" />
-            </div>
-            <span className="font-bold text-sm tracking-tight">Mundo Decants Nicaragua</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-input hover:border-primary/50 px-2.5 py-1.5 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              Volver
+      <PublicHeader />
+
+      <main className="flex-1 py-10 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground/60 mb-10">
+            <Link href="/" className="hover:text-foreground transition-colors">
+              Inicio
             </Link>
-          </div>
-        </div>
-      </header>
+            <span>/</span>
+            {product.category && (
+              <>
+                <Link href={`/categoria/${product.category.slug}`} className="hover:text-foreground transition-colors">
+                  {product.category.name}
+                </Link>
+                <span>/</span>
+              </>
+            )}
+            <span className="text-foreground">{product.name}</span>
+          </nav>
 
-      <main className="flex-1 py-6 sm:py-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <Link
-            href="/"
-            className="hidden sm:inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver al catálogo
-          </Link>
-
-          <div className={`bg-gradient-to-br ${gradient} border ${borderColor} rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg`}>
-            <div className="grid md:grid-cols-5 gap-0">
-              <div className="md:col-span-2 relative bg-white/40 flex items-center justify-center p-8 sm:p-10 min-h-[300px] sm:min-h-[400px]">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+            {/* Left: Images */}
+            <div className="space-y-4">
+              <div className="aspect-[4/5] bg-gradient-to-b from-stone-50 to-stone-100 rounded-2xl relative flex items-center justify-center p-8 lg:p-16 overflow-hidden border border-border/50">
                 {product.images[0] ? (
                   <div className="relative w-full h-full flex items-center justify-center">
                     <Image
                       src={product.images[0].url}
                       alt={product.name}
                       fill
-                      sizes="(max-width: 768px) 100vw, 40vw"
-                      className="object-contain transition-transform duration-500 hover:scale-105"
-                      style={{ maxHeight: "380px" }}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-contain drop-shadow-2xl"
+                      style={{ maxHeight: "80%" }}
                     />
-                    {!hasStock && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] rounded-2xl">
-                        <span className="text-white font-bold text-sm tracking-widest bg-red-600/90 px-4 py-2 rounded-lg shadow-lg">
-                          SOLD OUT
-                        </span>
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="text-8xl text-muted-foreground/10 font-bold select-none">
+                  <div className="text-9xl text-stone-200 font-serif font-light select-none">
                     {product.name.charAt(0)}
                   </div>
                 )}
-                {hasStock && totalStock > 0 && totalStock <= 5 && (
-                  <div className="absolute top-4 right-4 bg-amber-500 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-md">
-                    Últimas unidades
+                {!hasStock && (
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <span className="text-foreground border border-foreground px-6 py-3 text-xs uppercase tracking-[0.25em] font-medium bg-white/80">
+                      Agotado
+                    </span>
                   </div>
                 )}
               </div>
-
-              <div className="md:col-span-3 p-6 sm:p-10 flex flex-col justify-between bg-white/60 backdrop-blur-sm">
-                <div className="space-y-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${badgeColor}`}>
-                          {product.category?.name || "General"}
-                        </span>
-                        {(product.isFullBottle || product.isSupply) && (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-mono tracking-wider bg-muted/50 px-2 py-0.5 rounded-full">
-                            <span>{product.codigo}</span>
-                            {isSCCode(product.codigo) && (
-                              <span className="text-[8px] font-medium text-yellow-700 bg-yellow-100 px-1 py-0.5 rounded">SC</span>
-                            )}
-                          </span>
-                        )}
-                        {isSupply && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-slate-100 text-slate-700 border-slate-200">
-                            Insumo
-                          </span>
-                        )}
-                      </div>
-                      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">
-                        {product.name}
-                      </h1>
-                    </div>
-                  </div>
-
-                  {product.description && (
-                    <div className="bg-white/70 border rounded-xl p-4">
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {product.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {!isSupply && product.olfactoryNotes && (
-                    <div>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2 flex items-center gap-1.5">
-                        <Droplets className="h-3 w-3" />
-                        Notas Olfativas
-                      </h3>
-                      <div className="flex flex-wrap gap-1.5">
-                        {product.olfactoryNotes.split(",").map((note) => (
-                          <span
-                            key={note.trim()}
-                            className="px-3 py-1.5 bg-white/80 border rounded-full text-xs font-medium text-muted-foreground shadow-sm"
-                          >
-                            {note.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {product.variants.length > 0 && (
-                    <div>
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3 flex items-center gap-1.5">
-                        <Award className="h-3 w-3" />
-                        Presentaciones y Precios
-                      </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {variants.map((v) => {
-                          const cost = v.costs[0];
-                          const stock = v.globalInventory?.quantity ?? 0;
-                          return (
-                            <div
-                              key={v.id}
-                              className={`border rounded-xl p-3 text-center transition-all ${
-                                stock > 0
-                                  ? "bg-white/80 hover:shadow-md hover:border-primary/30"
-                                  : "bg-muted/30 opacity-60"
-                              }`}
-                            >
-                              <p className="text-lg font-bold text-primary">
-                                {v.presentation.slug === "2ml" ? "2 ml" :
-                                 v.presentation.slug === "5ml" ? "5 ml" :
-                                 v.presentation.slug === "10ml" ? "10 ml" :
-                                 v.presentation.slug === "25ml" ? "25 ml" : v.presentation.name}
-                              </p>
-                              {cost && (
-                                <p className="text-sm font-semibold mt-1">
-                                  {formatCurrency(Number(cost.finalPrice))}
-                                </p>
-                              )}
-                              <p className="text-[8px] text-muted-foreground/40 font-mono mt-1">
-                                {v.codigo}
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {otherVariants.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {otherVariants.map((v) => {
-                            const cost = v.costs[0];
-                            return (
-                            <span key={v.id} className="text-[11px] text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                              {v.presentation.name}{cost ? `: ${formatCurrency(Number(cost.finalPrice))}` : ""}
-                              <span className="text-[8px] text-muted-foreground/40 font-mono ml-1">{v.codigo}</span>
-                            </span>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-6 sm:mt-8 pt-5 border-t">
-                  <div className="bg-gradient-to-r from-primary/5 to-primary/[0.02] border rounded-xl p-4">
-                    <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-3">
-                      Hacer tu pedido
-                    </p>
-                    <div className="flex gap-2 flex-wrap">
-                      <a
-                        href="https://wa.me/message/7ZODFUDVVJZSH1"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors shadow-sm"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        WhatsApp
-                      </a>
-                      <a
-                        href="https://www.instagram.com/mundodecants_nicaragua"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 border bg-white/80 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-accent transition-colors"
-                      >
-                        <Camera className="h-4 w-4" />
-                        Instagram
-                      </a>
-                      <a
-                        href="/catalogo.pdf"
-                        className="inline-flex items-center gap-1.5 border bg-white/80 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-accent transition-colors"
-                      >
-                        <FileDown className="h-4 w-4" />
-                        Catálogo PDF
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
 
-          <div className="mt-8 text-center">
-            <p className="text-xs text-muted-foreground/40">
-              Mundo Decants Nicaragua · Perfumes originales en presentaciones de decant · Envíos a todo el país
-            </p>
+            {/* Right: Info */}
+            <div className="flex flex-col pt-4 lg:pt-10">
+              <div className="mb-8 space-y-3">
+                {product.brand && (
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+                    {product.brand.name}
+                  </p>
+                )}
+                <h1 className="text-4xl lg:text-5xl font-serif font-medium tracking-tight text-foreground leading-[1.1]">
+                  {product.name}
+                </h1>
+              </div>
+
+              {!isSupply && product.olfactoryNotes && (
+                <div className="mb-10">
+                  <div className="flex flex-wrap gap-2">
+                    {product.olfactoryNotes.split(",").map((note) => (
+                      <span
+                        key={note.trim()}
+                        className="px-4 py-2 border border-border rounded-full text-xs text-foreground/80 font-light"
+                      >
+                        {note.trim()}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {product.variants.length > 0 && (
+                <div className="mb-10">
+                  <h3 className="text-xs uppercase tracking-[0.2em] font-medium text-foreground mb-4">
+                    Tamaños Disponibles
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {variants.map((v) => {
+                      const cost = v.costs[0];
+                      const stock = v.globalInventory?.quantity ?? 0;
+                      return (
+                        <div
+                          key={v.id}
+                          className={`border rounded-xl p-4 text-center transition-all ${
+                            stock > 0
+                              ? "border-border hover:border-gold cursor-default"
+                              : "border-border/50 bg-stone-50 opacity-50"
+                          }`}
+                        >
+                          <p className="text-lg font-serif mb-1">
+                            {v.presentation.slug === "2ml" ? "2 ml" :
+                             v.presentation.slug === "5ml" ? "5 ml" :
+                             v.presentation.slug === "10ml" ? "10 ml" :
+                             v.presentation.slug === "25ml" ? "25 ml" : v.presentation.name}
+                          </p>
+                          {cost && (
+                            <p className="text-sm font-medium text-gold">
+                              {formatCurrency(Number(cost.finalPrice))}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {otherVariants.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {otherVariants.map((v) => {
+                        const cost = v.costs[0];
+                        return (
+                          <span key={v.id} className="text-xs text-muted-foreground/80 bg-stone-50 px-4 py-2 rounded-lg border border-border/50">
+                            {v.presentation.name}{cost ? ` · ${formatCurrency(Number(cost.finalPrice))}` : ""}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-auto space-y-4 pt-10 border-t border-border">
+                <a
+                  href="https://wa.me/message/7ZODFUDVVJZSH1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-8 py-4 text-sm font-medium hover:bg-[#20bd5a] transition-colors w-full tracking-wide rounded-none"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  Consultar disponibilidad
+                </a>
+                <a
+                  href="https://www.instagram.com/mundodecants_nicaragua"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-foreground text-background px-8 py-4 text-sm font-medium hover:bg-gold transition-colors w-full tracking-wide rounded-none"
+                >
+                  <Camera className="h-5 w-5" />
+                  Instagram
+                </a>
+              </div>
+
+              {product.description && (
+                <div className="mt-16">
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground/60 mb-4">
+                    Descripción del Producto
+                  </h3>
+                  <p className="text-sm text-foreground/80 leading-relaxed font-light whitespace-pre-wrap">
+                    {product.description}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
+
+      <PublicFooter />
     </div>
   );
 }
