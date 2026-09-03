@@ -15,10 +15,12 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-stone-50 font-sans">
       <AdminSidebar user={session.user} />
-      <main className="flex-1 overflow-y-auto bg-muted/20">
-        <div className="p-6">{children}</div>
+      <main className="flex-1 overflow-y-auto bg-stone-50/50">
+        <div className="p-6 md:p-8 lg:p-10 max-w-[1600px] mx-auto">
+          {children}
+        </div>
       </main>
       <Toaster richColors position="top-right" />
     </div>

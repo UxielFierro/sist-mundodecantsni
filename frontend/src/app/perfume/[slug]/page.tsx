@@ -192,6 +192,9 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                               {formatCurrency(Number(cost.finalPrice))}
                             </p>
                           )}
+                          <p className="text-[8px] text-stone-200 hover:text-stone-300 font-mono mt-1 select-all transition-colors cursor-text">
+                            {v.codigo}
+                          </p>
                         </div>
                       );
                     })}
@@ -201,9 +204,14 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                       {otherVariants.map((v) => {
                         const cost = v.costs[0];
                         return (
-                          <span key={v.id} className="text-[11px] md:text-xs text-muted-foreground/80 bg-stone-50 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-border/50">
-                            {v.presentation.name}{cost ? ` · ${formatCurrency(Number(cost.finalPrice))}` : ""}
-                          </span>
+                          <div key={v.id} className="flex flex-col items-center bg-stone-50 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-border/50">
+                            <span className="text-[11px] md:text-xs text-muted-foreground/80">
+                              {v.presentation.name}{cost ? ` · ${formatCurrency(Number(cost.finalPrice))}` : ""}
+                            </span>
+                            <span className="text-[8px] text-stone-200 hover:text-stone-300 font-mono mt-0.5 select-all transition-colors cursor-text">
+                              {v.codigo}
+                            </span>
+                          </div>
                         );
                       })}
                     </div>

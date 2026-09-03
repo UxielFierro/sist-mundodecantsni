@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import Image from "next/image";
 import {
   LayoutDashboard,
   Package,
@@ -11,7 +12,6 @@ import {
   BarChart3,
   Tags,
   LogOut,
-  ShieldCheck,
   ChevronLeft,
   FlaskConical,
   FileSpreadsheet,
@@ -43,31 +43,38 @@ export function AdminSidebar({
   return (
     <aside
       className={cn(
-        "border-r bg-card flex flex-col transition-all duration-300",
-        collapsed ? "w-16" : "w-60"
+        "bg-stone-950 flex flex-col transition-all duration-300 shadow-2xl z-20",
+        collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="p-4 h-16 border-b border-stone-800/50 flex items-center justify-between shrink-0">
         {!collapsed && (
-          <Link href="/admin" className="flex items-center gap-2 font-semibold">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            <span className="text-sm">MDN Admin</span>
+          <Link href="/admin" className="flex items-center gap-3">
+            <div className="relative w-7 h-7">
+              <Image 
+                src="/images/logo-icon.webp" 
+                alt="MDN" 
+                fill 
+                className="object-contain rounded-full"
+              />
+            </div>
+            <span className="font-serif text-base tracking-wide text-white">MDN Admin</span>
           </Link>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1 hover:bg-accent rounded-md"
+          className="p-1.5 hover:bg-stone-800 text-stone-400 hover:text-white rounded-lg transition-colors ml-auto"
         >
           <ChevronLeft
             className={cn(
-              "h-4 w-4 transition-transform",
+              "h-4 w-4 transition-transform duration-300",
               collapsed && "rotate-180"
             )}
           />
         </button>
       </div>
 
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto custom-scrollbar">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -75,30 +82,39 @@ export function AdminSidebar({
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 group",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                  ? "bg-gold text-stone-950 shadow-md shadow-gold/10"
+                  : "text-stone-400 hover:bg-stone-800/80 hover:text-stone-100"
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
+              <item.icon className={cn("h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110", isActive ? "text-stone-950" : "")} />
               {!collapsed && <span>{item.name}</span>}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-3 border-t">
+      <div className="p-3 border-t border-stone-800/50 bg-stone-950/50">
         {!collapsed && (
-          <div className="text-xs text-muted-foreground mb-2 truncate">
-            {user?.name || user?.email}
+          <div className="mb-3 px-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-semibold mb-1">
+              Usuario Actual
+            </p>
+            <p className="text-xs text-stone-300 truncate font-medium">
+              {user?.name || user?.email}
+            </p>
           </div>
         )}
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors w-full"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-stone-400 hover:bg-red-500/10 hover:text-red-400 transition-colors w-full group",
+            collapsed && "justify-center"
+          )}
+          title="Cerrar Sesión"
         >
-          <LogOut className="h-4 w-4 shrink-0" />
+          <LogOut className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1" />
           {!collapsed && <span>Cerrar Sesión</span>}
         </button>
       </div>

@@ -30,119 +30,129 @@ export default async function AdminDashboard() {
   ].filter((d) => d.value > 0);
 
   const cards = [
-    { title: "Productos", value: data.totals.products, icon: Package, sub: `${data.totals.variants} variantes` },
-    { title: "Espacios", value: data.totals.locations, icon: Store, sub: "activos" },
-    { title: "Stock Bajo", value: data.totals.lowStock, icon: AlertTriangle, sub: "por reabastecer", warn: data.totals.lowStock > 0 },
-    { title: "Sin Stock", value: data.totals.outOfStock, icon: Boxes, sub: "agotados", danger: data.totals.outOfStock > 0 },
-    { title: "Unidades Totales", value: data.totals.totalStock, icon: TrendingUp, sub: "en inventario" },
-    { title: "Reportes", value: data.totals.salesReports, icon: BarChart3, sub: "de ventas cargados" },
+    { title: "Productos", value: data.totals.products, icon: Package, sub: `${data.totals.variants} variantes`, color: "text-blue-600", bg: "bg-blue-50" },
+    { title: "Espacios", value: data.totals.locations, icon: Store, sub: "activos", color: "text-emerald-600", bg: "bg-emerald-50" },
+    { title: "Stock Bajo", value: data.totals.lowStock, icon: AlertTriangle, sub: "por reabastecer", warn: data.totals.lowStock > 0, color: "text-amber-600", bg: "bg-amber-50" },
+    { title: "Sin Stock", value: data.totals.outOfStock, icon: Boxes, sub: "agotados", danger: data.totals.outOfStock > 0, color: "text-red-600", bg: "bg-red-50" },
+    { title: "Unidades Totales", value: data.totals.totalStock, icon: TrendingUp, sub: "en inventario", color: "text-purple-600", bg: "bg-purple-50" },
+    { title: "Reportes", value: data.totals.salesReports, icon: BarChart3, sub: "de ventas cargados", color: "text-indigo-600", bg: "bg-indigo-50" },
   ];
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Resumen del sistema Mundo Decants Nicaragua
+    <div className="animate-in fade-in duration-500">
+      <div className="mb-10">
+        <h1 className="text-4xl font-serif font-medium tracking-tight text-stone-900">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-2 font-light">
+          Resumen general del sistema Mundo Decants Nicaragua
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-6 mb-10">
         {cards.map((card) => (
-          <div key={card.title} className="bg-card border rounded-xl p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`p-2 rounded-lg ${card.danger ? "bg-red-100" : card.warn ? "bg-yellow-100" : "bg-primary/10"}`}>
-                <card.icon className={`h-4 w-4 ${card.danger ? "text-red-600" : card.warn ? "text-yellow-600" : "text-primary"}`} />
+          <div key={card.title} className="bg-white border border-stone-200/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-2.5 rounded-xl ${card.danger ? "bg-red-50 text-red-600" : card.warn ? "bg-amber-50 text-amber-600" : "bg-stone-50 text-stone-700"}`}>
+                <card.icon className="h-5 w-5" />
               </div>
             </div>
-            <div className="text-2xl font-bold mb-0.5">{card.value}</div>
-            <div className="text-xs font-medium">{card.title}</div>
-            <div className="text-[10px] text-muted-foreground">{card.sub}</div>
+            <div className="text-3xl font-serif mb-1 text-stone-900">{card.value}</div>
+            <div className="text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1">{card.title}</div>
+            <div className="text-[11px] text-muted-foreground">{card.sub}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-10">
         {data.categoryChart.length > 0 && (
-          <div className="bg-card border rounded-xl p-5">
-            <h2 className="font-semibold mb-2 text-sm">Productos por Categoría</h2>
-            <CategoryChart data={data.categoryChart} />
+          <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm">
+            <h2 className="font-serif text-lg text-stone-800 mb-4">Productos por Categoría</h2>
+            <div className="h-[300px]">
+              <CategoryChart data={data.categoryChart} />
+            </div>
           </div>
         )}
 
         {data.topSelling.length > 0 && (
-          <div className="bg-card border rounded-xl p-5 lg:col-span-2">
-            <h2 className="font-semibold mb-2 text-sm">Más Vendidos</h2>
-            <TopSellingChart data={data.topSelling} />
+          <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm lg:col-span-2">
+            <h2 className="font-serif text-lg text-stone-800 mb-4">Más Vendidos</h2>
+            <div className="h-[300px]">
+              <TopSellingChart data={data.topSelling} />
+            </div>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-10">
         {inventoryStatus.length > 0 && (
-          <div className="bg-card border rounded-xl p-5">
-            <h2 className="font-semibold mb-2 text-sm">Estado del Inventario</h2>
-            <InventoryStatusChart data={inventoryStatus} />
+          <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm">
+            <h2 className="font-serif text-lg text-stone-800 mb-4">Estado del Inventario</h2>
+            <div className="h-[300px]">
+              <InventoryStatusChart data={inventoryStatus} />
+            </div>
           </div>
         )}
 
-        <div className="lg:col-span-2 bg-card border rounded-xl p-5">
-          <h2 className="font-semibold mb-3 text-sm">Movimientos Recientes</h2>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {data.recentMovements.map((m) => (
-              <div key={m.id} className="flex items-center justify-between text-xs py-1.5 border-b last:border-0">
-                <div className="flex items-center gap-2">
-                  <span className={`w-1.5 h-1.5 rounded-full ${m.movementType === "purchase" ? "bg-green-500" : m.movementType === "sale" ? "bg-blue-500" : m.movementType === "delivery_to_location" ? "bg-yellow-500" : "bg-gray-500"}`} />
-                  <span className="font-medium capitalize">{m.movementType.replace(/_/g, " ")}</span>
-                  <span className="text-muted-foreground">{m.variant.product.name}</span>
+        <div className="lg:col-span-2 bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm flex flex-col">
+          <h2 className="font-serif text-lg text-stone-800 mb-4">Movimientos Recientes</h2>
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar" style={{ maxHeight: "300px" }}>
+            <div className="space-y-3">
+              {data.recentMovements.map((m) => (
+                <div key={m.id} className="flex items-center justify-between text-sm py-3 border-b border-stone-100 last:border-0 hover:bg-stone-50/50 px-2 rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2 h-2 rounded-full shadow-sm ${m.movementType === "purchase" ? "bg-emerald-500" : m.movementType === "sale" ? "bg-blue-500" : m.movementType === "delivery_to_location" ? "bg-amber-500" : "bg-stone-400"}`} />
+                    <span className="font-medium text-stone-700 capitalize text-xs bg-white border border-stone-200 px-2 py-1 rounded-md shadow-sm">
+                      {m.movementType.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-muted-foreground font-light">{m.variant.product.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className={`font-semibold ${m.quantity > 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                    </span>
+                    <span className="text-xs text-muted-foreground/60 font-mono">
+                      {new Date(m.createdAt).toLocaleDateString("es")}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={m.quantity > 0 ? "text-green-600" : "text-red-600"}>
-                    {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {new Date(m.createdAt).toLocaleDateString("es")}
-                  </span>
-                </div>
-              </div>
-            ))}
-            {data.recentMovements.length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">Sin movimientos recientes</div>
-            )}
+              ))}
+              {data.recentMovements.length === 0 && (
+                <div className="text-center py-10 text-muted-foreground font-light">Sin movimientos recientes</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-card border rounded-xl p-5">
-        <h2 className="font-semibold mb-3 text-sm">Últimos Reportes de Ventas</h2>
+      <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm">
+        <h2 className="font-serif text-lg text-stone-800 mb-6">Últimos Reportes de Ventas</h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="bg-muted/50">
+          <table className="w-full text-sm">
+            <thead className="bg-stone-50/80 border-b border-stone-200">
               <tr>
-                <th className="text-left px-3 py-2 font-medium">Espacio</th>
-                <th className="text-left px-3 py-2 font-medium">Período</th>
-                <th className="text-right px-3 py-2 font-medium">Productos</th>
-                <th className="text-right px-3 py-2 font-medium">Unidades</th>
-                <th className="text-right px-3 py-2 font-medium">Total</th>
-                <th className="text-center px-3 py-2 font-medium">Estado</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600 rounded-tl-lg">Espacio</th>
+                <th className="text-left px-4 py-3 font-semibold text-stone-600">Período</th>
+                <th className="text-center px-4 py-3 font-semibold text-stone-600">Productos</th>
+                <th className="text-center px-4 py-3 font-semibold text-stone-600">Unidades</th>
+                <th className="text-right px-4 py-3 font-semibold text-stone-600">Total</th>
+                <th className="text-center px-4 py-3 font-semibold text-stone-600 rounded-tr-lg">Estado</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-stone-100">
               {data.recentSales.map((r) => {
                 const total = r.items.reduce((s, i) => s + Number(i.unitPrice) * i.quantitySold, 0);
                 const units = r.items.reduce((s, i) => s + i.quantitySold, 0);
                 return (
-                  <tr key={r.id} className="hover:bg-muted/20">
-                    <td className="px-3 py-2">{r.location.name}</td>
-                    <td className="px-3 py-2">{r.period}</td>
-                    <td className="px-3 py-2 text-right">{r.items.length}</td>
-                    <td className="px-3 py-2 text-right">{units}</td>
-                    <td className="px-3 py-2 text-right font-medium">{formatCurrency(total)}</td>
-                    <td className="px-3 py-2 text-center">
-                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                        r.status === "confirmed" ? "bg-green-100 text-green-700" :
-                        r.status === "reconciled" ? "bg-blue-100 text-blue-700" :
-                        "bg-yellow-100 text-yellow-700"
+                  <tr key={r.id} className="hover:bg-stone-50/50 transition-colors">
+                    <td className="px-4 py-3.5 font-medium text-stone-800">{r.location.name}</td>
+                    <td className="px-4 py-3.5 text-muted-foreground">{r.period}</td>
+                    <td className="px-4 py-3.5 text-center text-muted-foreground">{r.items.length}</td>
+                    <td className="px-4 py-3.5 text-center text-muted-foreground">{units}</td>
+                    <td className="px-4 py-3.5 text-right font-semibold text-stone-800">{formatCurrency(total)}</td>
+                    <td className="px-4 py-3.5 text-center">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-semibold ${
+                        r.status === "confirmed" ? "bg-emerald-100/50 text-emerald-700 border border-emerald-200" :
+                        r.status === "reconciled" ? "bg-blue-100/50 text-blue-700 border border-blue-200" :
+                        "bg-amber-100/50 text-amber-700 border border-amber-200"
                       }`}>
                         {r.status === "pending" ? "Pendiente" :
                          r.status === "confirmed" ? "Confirmado" : "Conciliado"}
@@ -152,7 +162,7 @@ export default async function AdminDashboard() {
                 );
               })}
               {data.recentSales.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-6 text-muted-foreground">Sin reportes</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-muted-foreground font-light">Sin reportes registrados</td></tr>
               )}
             </tbody>
           </table>

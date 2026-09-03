@@ -53,23 +53,23 @@ export default async function ProductsPage({
   const products = deepSerialize(rawProducts) as any[];
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="animate-in fade-in duration-500">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Productos</h1>
-          <p className="text-muted-foreground mt-1">{total} productos registrados</p>
+          <h1 className="text-3xl font-serif font-medium tracking-tight text-stone-900">Productos</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-light">{total} productos registrados en el sistema</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <a
             href="/api/export/catalogo"
-            className="inline-flex items-center gap-2 border border-input px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent"
+            className="inline-flex items-center gap-2 border border-stone-200 bg-white px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-semibold text-stone-600 hover:border-gold hover:text-gold transition-colors shadow-sm"
           >
             <Download className="h-4 w-4" />
             Exportar
           </a>
           <Link
             href="/admin/productos/nuevo"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+            className="inline-flex items-center gap-2 bg-stone-950 text-white px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-semibold hover:bg-gold transition-colors shadow-md"
           >
             <Plus className="h-4 w-4" />
             Nuevo Producto
@@ -77,15 +77,15 @@ export default async function ProductsPage({
         </div>
       </div>
 
-      <div className="bg-card border rounded-xl overflow-hidden">
+      <div className="bg-white border border-stone-200/60 rounded-2xl overflow-hidden shadow-sm">
         <ProductFilters search={search} categoryFilter={categoryFilter} categories={categories} />
 
         <ProductsTable products={products} />
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t text-sm">
-            <p className="text-muted-foreground">
-              Página {currentPage} de {totalPages} ({total} productos)
+          <div className="flex items-center justify-between px-6 py-4 border-t border-stone-100 bg-stone-50/30 text-sm">
+            <p className="text-muted-foreground font-light">
+              Mostrando página <span className="font-medium text-stone-700">{currentPage}</span> de {totalPages} ({total} productos)
             </p>
             <div className="flex items-center gap-2">
               {currentPage > 1 && (
@@ -94,7 +94,7 @@ export default async function ProductsPage({
                     pathname: "/admin/productos",
                     query: { ...(search && { q: search }), ...(categoryFilter && { cat: categoryFilter }), page: String(currentPage - 1) },
                   }}
-                  className="px-3 py-1.5 border rounded-lg hover:bg-accent"
+                  className="px-4 py-2 bg-white border border-stone-200 rounded-lg hover:border-gold hover:text-gold transition-colors shadow-sm text-xs uppercase tracking-wider font-medium text-stone-600"
                 >
                   Anterior
                 </Link>
@@ -105,7 +105,7 @@ export default async function ProductsPage({
                     pathname: "/admin/productos",
                     query: { ...(search && { q: search }), ...(categoryFilter && { cat: categoryFilter }), page: String(currentPage + 1) },
                   }}
-                  className="px-3 py-1.5 border rounded-lg hover:bg-accent"
+                  className="px-4 py-2 bg-white border border-stone-200 rounded-lg hover:border-gold hover:text-gold transition-colors shadow-sm text-xs uppercase tracking-wider font-medium text-stone-600"
                 >
                   Siguiente
                 </Link>
