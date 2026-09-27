@@ -106,14 +106,16 @@ export function PublicFooter() {
             </h4>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground/70 leading-relaxed">
-                Colectivo Emprendi2
+                Colonia Centroamérica
                 <br />
-                De donde fue el Sandy&apos;s 1c al sur
+                De los Semáforos de Lozelsa
+                <br />
+                20 varas abajo, en edificio KTM
                 <br />
                 Managua, Nicaragua
               </p>
               <a
-                href="https://maps.app.goo.gl/bWnCdNqKUGrfQhBJ8"
+                href="https://maps.app.goo.gl/ChcfVXpJgUnzkcwc9"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm text-gold hover:text-gold/80 transition-colors duration-300"

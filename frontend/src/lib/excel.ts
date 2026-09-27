@@ -44,8 +44,8 @@ export async function createCatalogExcel(
     ["Facebook", "https://www.facebook.com/share/1HoTQ938Nn"],
     ["", ""],
     ["Ubicación", ""],
-    ["Dirección", "Colectivo Emprendi2, Calle Principal Colonia Centroamérica. De los semáforos de Lozelsa a 20 varas abajo, contiguo a CF Moto (Frente a Harry Garay Exclusive Design)."],
-    ["Google Maps", "https://maps.app.goo.gl/PHtV13cC63ywP6MK7"],
+    ["Dirección", "Colonia Centroamerica, De los Semáforos de Lozelsa 20varas abajo en edificio KTM"],
+    ["Google Maps", "https://maps.app.goo.gl/ChcfVXpJgUnzkcwc9"],
   ];
 
   infoData.forEach(([label, value], i) => {

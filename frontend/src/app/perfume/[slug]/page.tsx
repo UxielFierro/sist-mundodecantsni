@@ -206,7 +206,7 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                         return (
                           <div key={v.id} className="flex flex-col items-center bg-stone-50 px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-border/50">
                             <span className="text-[11px] md:text-xs text-muted-foreground/80">
-                              {v.presentation.name}{cost ? ` · ${formatCurrency(Number(cost.finalPrice))}` : ""}
+                              {v.presentation.name}{cost ? ` — ${formatCurrency(Number(cost.finalPrice))}` : ""}
                             </span>
                             <span className="text-[8px] text-stone-200 hover:text-stone-300 font-mono mt-0.5 select-all transition-colors cursor-text">
                               {v.codigo}
@@ -216,28 +216,42 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
                       })}
                     </div>
                   )}
+
+                  {/* Size Guide (Spray Estimator) - Increases Trust */}
+                  <div className="mt-5 pt-5 border-t border-border/40 grid grid-cols-2 gap-3">
+                    <div className="text-center bg-stone-50/80 rounded-lg p-3 shadow-sm border border-border/30">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-1 font-medium">Decant 5 ml</p>
+                      <p className="text-sm font-semibold text-foreground/90">~75 sprays</p>
+                      <p className="text-[9px] text-muted-foreground mt-1">Aprox. 1 mes de uso</p>
+                    </div>
+                    <div className="text-center bg-stone-50/80 rounded-lg p-3 shadow-sm border border-border/30">
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-1 font-medium">Decant 10 ml</p>
+                      <p className="text-sm font-semibold text-foreground/90">~150 sprays</p>
+                      <p className="text-[9px] text-muted-foreground mt-1">Aprox. 2 meses de uso</p>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="mt-auto space-y-3 pt-6 md:pt-10 border-t border-border/60">
+              {/* Desktop Action Buttons */}
+              <div className="hidden md:block mt-auto space-y-3 pt-10 border-t border-border/60">
                 <a
-                  href="https://wa.me/message/7ZODFUDVVJZSH1"
+                  href={`https://wa.me/message/7ZODFUDVVJZSH1?text=${encodeURIComponent(`Hola, me interesa el decant de ${product.name} que vi en su catálogo. ¿Tienen disponibilidad?`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-3 md:py-4 text-sm font-medium hover:bg-[#20bd5a] transition-colors w-full tracking-wide rounded-xl md:rounded-none shadow-sm"
+                  className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-4 text-sm font-medium hover:bg-[#20bd5a] transition-all duration-300 w-full tracking-wide rounded-lg shadow-sm hover:shadow-md"
                 >
-                  <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
-                  Consultar disponibilidad
+                  <MessageCircle className="h-5 w-5" />
+                  Consultar disponibilidad por WhatsApp
                 </a>
                 <a
                   href="https://www.instagram.com/mundodecants_nicaragua"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-foreground text-background px-6 py-3 md:py-4 text-sm font-medium hover:bg-gold transition-colors w-full tracking-wide rounded-xl md:rounded-none shadow-sm"
+                  className="flex items-center justify-center gap-2 bg-stone-100 text-stone-800 border border-border px-6 py-4 text-sm font-medium hover:bg-stone-200 transition-all duration-300 w-full tracking-wide rounded-lg shadow-sm"
                 >
-                  <Camera className="h-4 w-4 md:h-5 md:w-5" />
-                  Instagram
+                  <Camera className="h-5 w-5" />
+                  Ver en Instagram
                 </a>
               </div>
 
@@ -245,6 +259,21 @@ export default async function PerfumeDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
       </main>
+
+      {/* Sticky Mobile Buy Button */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-border/50 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] pb-8">
+        <a
+          href={`https://wa.me/message/7ZODFUDVVJZSH1?text=${encodeURIComponent(`Hola, me interesa el decant de ${product.name} que vi en su catálogo.`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-4 text-[13px] font-semibold uppercase tracking-wide hover:bg-[#20bd5a] transition-colors w-full rounded-xl shadow-lg"
+        >
+          <MessageCircle className="h-5 w-5" />
+          Lo quiero
+        </a>
+      </div>
+
+      <div className="md:hidden pb-24" /> {/* Spacer for sticky footer */}
 
       <PublicFooter />
     </div>
