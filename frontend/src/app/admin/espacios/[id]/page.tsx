@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, FileText } from "lucide-react";
 import { LocationInventoryTable } from "./_components/location-inventory-table";
+import { LocationDeliveriesButton } from "./_components/location-deliveries-button";
+import { LocationReportsButton } from "./_components/location-reports-button";
 
 export default async function LocationDetailPage({
   params,
@@ -25,12 +27,12 @@ export default async function LocationDetailPage({
       deliveries: {
         include: { items: { include: { variant: { include: { product: true, presentation: true } } } } },
         orderBy: { createdAt: "desc" },
-        take: 10,
+        take: 30, // Get more for the modal
       },
       salesReports: {
         include: { items: { include: { variant: { include: { product: true, presentation: true } } } } },
         orderBy: { createdAt: "desc" },
-        take: 10,
+        take: 30, // Get more for the modal
       },
     },
   });
@@ -49,9 +51,12 @@ export default async function LocationDetailPage({
           <span className="text-xs capitalize bg-muted px-2 py-0.5 rounded">{location.type}</span>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <LocationDeliveriesButton deliveries={location.deliveries} />
+          <LocationReportsButton reports={location.salesReports} />
+          
           <Link href={`/admin/entregas/nueva?locationId=${location.id}`}>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="default">
               <PlusCircle className="mr-2 h-4 w-4" />
               Nueva Entrega
             </Button>
@@ -65,46 +70,12 @@ export default async function LocationDetailPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-card border rounded-xl p-6">
-          <h2 className="font-semibold mb-4">Inventario en {location.name}</h2>
-          <LocationInventoryTable 
-            locationId={location.id} 
-            inventory={location.locationInventory} 
-          />
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-card border rounded-xl p-6">
-            <h2 className="font-semibold mb-3">Últimas Entregas</h2>
-            {location.deliveries.map((d) => (
-              <div key={d.id} className="text-sm py-2 border-b last:border-0">
-                <div className="font-medium">{d.period || `Entrega #${d.id}`}</div>
-                <div className="text-muted-foreground text-xs">
-                  {d.items.length} productos — {new Date(d.createdAt).toLocaleDateString("es")}
-                </div>
-              </div>
-            ))}
-            {location.deliveries.length === 0 && (
-              <div className="text-sm text-muted-foreground">Sin entregas registradas</div>
-            )}
-          </div>
-
-          <div className="bg-card border rounded-xl p-6">
-            <h2 className="font-semibold mb-3">Últimos Reportes</h2>
-            {location.salesReports.map((r) => (
-              <div key={r.id} className="text-sm py-2 border-b last:border-0">
-                <div className="font-medium">{r.period || `Reporte #${r.id}`}</div>
-                <div className="text-muted-foreground text-xs">
-                  {r.items.length} productos — Estado: {r.status}
-                </div>
-              </div>
-            ))}
-            {location.salesReports.length === 0 && (
-              <div className="text-sm text-muted-foreground">Sin reportes registrados</div>
-            )}
-          </div>
-        </div>
+      <div className="bg-card border rounded-xl p-6">
+        <h2 className="font-semibold mb-4">Inventario en {location.name}</h2>
+        <LocationInventoryTable 
+          locationId={location.id} 
+          inventory={location.locationInventory} 
+        />
       </div>
     </div>
   );
