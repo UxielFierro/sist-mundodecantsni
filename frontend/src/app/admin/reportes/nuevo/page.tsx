@@ -2,7 +2,12 @@ import { prisma } from "@/lib/db";
 import { deepSerialize } from "@/lib/utils";
 import { NewSalesReportForm } from "./_components/new-sales-report-form";
 
-export default async function NewSalesReportPage() {
+export default async function NewSalesReportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ locationId?: string }>;
+}) {
+  const { locationId } = await searchParams;
   const [locations, rawVariants] = await Promise.all([
     prisma.location.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
     prisma.productVariant.findMany({
@@ -17,6 +22,7 @@ export default async function NewSalesReportPage() {
   ]);
 
   const variants = deepSerialize(rawVariants) as any;
+  const defaultLocationId = locationId ? parseInt(locationId) : undefined;
 
-  return <NewSalesReportForm locations={locations} variants={variants} />;
+  return <NewSalesReportForm locations={locations} variants={variants} defaultLocationId={defaultLocationId} />;
 }

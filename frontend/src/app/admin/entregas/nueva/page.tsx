@@ -5,10 +5,11 @@ import { NewDeliveryForm } from "./_components/new-delivery-form";
 export default async function NewDeliveryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; locationId?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, locationId } = await searchParams;
   const search = q?.trim() || "";
+  const defaultLocationId = locationId ? parseInt(locationId) : undefined;
 
   const variantWhere: Record<string, unknown> = {
     active: true,
@@ -38,5 +39,5 @@ export default async function NewDeliveryPage({
 
   const variants = deepSerialize(rawVariants) as any;
 
-  return <NewDeliveryForm locations={locations} variants={variants} search={search} />;
+  return <NewDeliveryForm locations={locations} variants={variants} search={search} defaultLocationId={defaultLocationId} />;
 }

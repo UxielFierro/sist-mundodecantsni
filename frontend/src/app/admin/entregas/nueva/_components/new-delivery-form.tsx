@@ -34,10 +34,12 @@ export function NewDeliveryForm({
   locations,
   variants,
   search: initialSearch = "",
+  defaultLocationId,
 }: {
   locations: LocationData[];
   variants: VariantData[];
   search?: string;
+  defaultLocationId?: number;
 }) {
   const router = useRouter();
   const [search, setSearch] = useState(initialSearch);
@@ -132,7 +134,7 @@ export function NewDeliveryForm({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="locationId" className="block text-sm font-medium mb-1">Espacio *</label>
-            <select id="locationId" name="locationId" required className="w-full px-3 py-2 border rounded-lg bg-background">
+            <select id="locationId" name="locationId" required defaultValue={defaultLocationId || ""} className="w-full px-3 py-2 border rounded-lg bg-background">
               <option value="">Seleccionar...</option>
               {locations.map((l) => (
                 <option key={l.id} value={l.id}>{l.name}</option>

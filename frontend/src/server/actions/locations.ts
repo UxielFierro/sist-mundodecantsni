@@ -57,3 +57,44 @@ export async function createLocation(formData: FormData) {
 
   revalidatePath("/admin/espacios");
 }
+
+export async function adjustLocationStock(
+  locationId: number,
+  variantId: number,
+  newQuantity: number,
+  reason: string
+) {
+  // 1. Get current stock
+  const current = await prisma.locationInventory.findUnique({
+    where: { locationId_variantId: { locationId, variantId } }
+  });
+  
+  const currentQty = current?.quantity || 0;
+  const difference = newQuantity - currentQty;
+  
+  if (difference === 0) return { success: true };
+
+  await prisma.$transaction(async (tx) => {
+    // 2. Update stock
+    await tx.locationInventory.upsert({
+      where: { locationId_variantId: { locationId, variantId } },
+      update: { quantity: newQuantity },
+      create: { locationId, variantId, quantity: newQuantity }
+    });
+
+    // 3. Log the adjustment movement
+    await tx.inventoryMovement.create({
+      data: {
+        variantId,
+        locationId,
+        movementType: "adjustment",
+        quantity: difference,
+        notes: reason,
+        createdBy: "admin",
+      }
+    });
+  });
+
+  revalidatePath(`/admin/espacios/${locationId}`);
+  return { success: true };
+}
