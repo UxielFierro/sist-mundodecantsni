@@ -34,11 +34,9 @@ export function LocationReportsButton({ reports }: { reports: Report[] }) {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <ClipboardList className="mr-2 h-4 w-4" />
-          Ver Lista de Reportes
-        </Button>
+      <DialogTrigger render={<Button variant="outline" size="sm" />}>
+        <ClipboardList className="mr-2 h-4 w-4" />
+        Ver Lista de Reportes
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>

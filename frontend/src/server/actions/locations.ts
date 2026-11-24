@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { slugify } from "@/lib/utils";
+import { requireAdmin, generateUniqueSlug } from "@/lib/auth-guard";
 import { z } from "zod";
 
 const locationSchema = z.object({
@@ -11,7 +11,7 @@ const locationSchema = z.object({
   address: z.string().optional(),
   contact: z.string().optional(),
   phone: z.string().optional(),
-  active: z.boolean().default(true),
+  active: z.preprocess((v) => v === undefined ? true : v === "true" || v === true, z.boolean()).default(true),
 });
 
 export async function getLocations() {
@@ -40,22 +40,49 @@ export async function getLocation(id: number) {
 }
 
 export async function createLocation(formData: FormData) {
+  await requireAdmin();
   const raw = Object.fromEntries(formData);
   const parsed = locationSchema.parse(raw);
+  const slug = await generateUniqueSlug("location", parsed.name);
 
   await prisma.location.create({
     data: {
-      name: parsed.name,
-      slug: slugify(parsed.name),
+      name: parsed.name.trim(),
+      slug,
       type: parsed.type,
-      address: parsed.address,
-      contact: parsed.contact,
-      phone: parsed.phone,
+      address: parsed.address?.trim() || null,
+      contact: parsed.contact?.trim() || null,
+      phone: parsed.phone?.trim() || null,
       active: parsed.active,
     },
   });
 
   revalidatePath("/admin/espacios");
+  revalidatePath("/admin");
+}
+
+export async function updateLocation(id: number, formData: FormData) {
+  await requireAdmin();
+  const raw = Object.fromEntries(formData);
+  const parsed = locationSchema.parse(raw);
+  const slug = await generateUniqueSlug("location", parsed.name, id);
+
+  await prisma.location.update({
+    where: { id },
+    data: {
+      name: parsed.name.trim(),
+      slug,
+      type: parsed.type,
+      address: parsed.address?.trim() || null,
+      contact: parsed.contact?.trim() || null,
+      phone: parsed.phone?.trim() || null,
+      active: parsed.active,
+    },
+  });
+
+  revalidatePath("/admin/espacios");
+  revalidatePath(`/admin/espacios/${id}`);
+  revalidatePath("/admin");
 }
 
 export async function adjustLocationStock(
@@ -64,37 +91,41 @@ export async function adjustLocationStock(
   newQuantity: number,
   reason: string
 ) {
-  // 1. Get current stock
+  const actor = await requireAdmin();
+  if (newQuantity < 0) {
+    throw new Error("El stock no puede ser negativo");
+  }
+
   const current = await prisma.locationInventory.findUnique({
-    where: { locationId_variantId: { locationId, variantId } }
+    where: { locationId_variantId: { locationId, variantId } },
   });
-  
+
   const currentQty = current?.quantity || 0;
   const difference = newQuantity - currentQty;
-  
+
   if (difference === 0) return { success: true };
 
   await prisma.$transaction(async (tx) => {
-    // 2. Update stock
     await tx.locationInventory.upsert({
       where: { locationId_variantId: { locationId, variantId } },
       update: { quantity: newQuantity },
-      create: { locationId, variantId, quantity: newQuantity }
+      create: { locationId, variantId, quantity: newQuantity },
     });
 
-    // 3. Log the adjustment movement
     await tx.inventoryMovement.create({
       data: {
         variantId,
         locationId,
         movementType: "adjustment",
         quantity: difference,
-        notes: reason,
-        createdBy: "admin",
-      }
+        notes: reason?.trim() || `Ajuste en espacio a ${newQuantity}`,
+        createdBy: actor,
+      },
     });
   });
 
   revalidatePath(`/admin/espacios/${locationId}`);
+  revalidatePath("/admin/espacios");
+  revalidatePath("/admin");
   return { success: true };
 }

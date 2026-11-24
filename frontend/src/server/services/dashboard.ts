@@ -47,7 +47,7 @@ export async function getDashboardData() {
     });
   }
 
-  const lowStock = inventory.filter((i) => i.quantity <= i.minStock);
+  const lowStock = inventory.filter((i) => i.quantity > 0 && i.quantity <= i.minStock);
   const outOfStock = inventory.filter((i) => i.quantity === 0);
 
   const variantIds = topSelling.map((t) => t.variantId);

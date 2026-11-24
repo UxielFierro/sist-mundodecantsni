@@ -33,11 +33,9 @@ export function LocationDeliveriesButton({ deliveries }: { deliveries: Delivery[
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <PackageOpen className="mr-2 h-4 w-4" />
-          Ver Lista de Entregas
-        </Button>
+      <DialogTrigger render={<Button variant="outline" size="sm" />}>
+        <PackageOpen className="mr-2 h-4 w-4" />
+        Ver Lista de Entregas
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>

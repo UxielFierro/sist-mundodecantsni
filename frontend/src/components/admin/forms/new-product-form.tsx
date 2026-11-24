@@ -4,6 +4,7 @@ import { useActionState, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createProduct } from "@/server/actions/products";
+import { QuickCatalogSelect } from "./quick-catalog-select";
 import { slugify } from "@/lib/utils";
 import { ImagePlus } from "lucide-react";
 
@@ -107,24 +108,20 @@ export function NewProductForm({
             <p className="text-[10px] text-muted-foreground mt-0.5">{slugify(name)}</p>
           )}
         </div>
-        <div>
-          <label htmlFor="categoryId" className="block text-sm font-medium mb-1">Categoría</label>
-          <select id="categoryId" name="categoryId" className="w-full px-3 py-2 text-sm border rounded-lg bg-background">
-            <option value="">Sin categoría</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="brandId" className="block text-sm font-medium mb-1">Marca</label>
-          <select id="brandId" name="brandId" className="w-full px-3 py-2 text-sm border rounded-lg bg-background">
-            <option value="">Sin marca</option>
-            {brands.map((brand) => (
-              <option key={brand.id} value={brand.id}>{brand.name}</option>
-            ))}
-          </select>
-        </div>
+        <QuickCatalogSelect
+          type="category"
+          name="categoryId"
+          label="Categoría"
+          emptyLabel="Sin categoría"
+          initialOptions={categories}
+        />
+        <QuickCatalogSelect
+          type="brand"
+          name="brandId"
+          label="Marca"
+          emptyLabel="Sin marca"
+          initialOptions={brands}
+        />
       </div>
 
       <div>

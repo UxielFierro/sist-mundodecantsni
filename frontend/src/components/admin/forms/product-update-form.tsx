@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateProduct } from "@/server/actions/products";
+import { QuickCatalogSelect } from "./quick-catalog-select";
 
 export function UpdateProductForm({
   productId,
@@ -61,22 +62,22 @@ export function UpdateProductForm({
           <input id="name" name="name" defaultValue={product.name} required
             className="w-full px-3 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/50" />
         </div>
-        <div>
-          <label htmlFor="categoryId" className="block text-sm font-medium mb-1">Categoría</label>
-          <select id="categoryId" name="categoryId" defaultValue={product.categoryId ?? ""}
-            className="w-full px-3 py-2 text-sm border rounded-lg bg-background">
-            <option value="">Sin categoría</option>
-            {categories.map((cat) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="brandId" className="block text-sm font-medium mb-1">Marca</label>
-          <select id="brandId" name="brandId" defaultValue={product.brandId ?? ""}
-            className="w-full px-3 py-2 text-sm border rounded-lg bg-background">
-            <option value="">Sin marca</option>
-            {brands.map((brand) => (<option key={brand.id} value={brand.id}>{brand.name}</option>))}
-          </select>
-        </div>
+        <QuickCatalogSelect
+          type="category"
+          name="categoryId"
+          label="Categoría"
+          emptyLabel="Sin categoría"
+          initialOptions={categories}
+          defaultValue={product.categoryId}
+        />
+        <QuickCatalogSelect
+          type="brand"
+          name="brandId"
+          label="Marca"
+          emptyLabel="Sin marca"
+          initialOptions={brands}
+          defaultValue={product.brandId}
+        />
       </div>
 
       <div>

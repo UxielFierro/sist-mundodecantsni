@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth-guard";
 import fs from "fs/promises";
 import path from "path";
 
 export async function uploadImage(formData: FormData) {
+  await requireAdmin();
   const productId = Number(formData.get("productId"));
   const file = formData.get("image") as File;
 
@@ -30,16 +32,18 @@ export async function uploadImage(formData: FormData) {
     data: {
       productId,
       url: `/images/products/${filename}`,
-      altText: formData.get("altText") as string || null,
+      altText: (formData.get("altText") as string) || null,
       isPrimary: existingImages.length === 0,
       sortOrder: (existingImages[0]?.sortOrder ?? -1) + 1,
     },
   });
 
   revalidatePath(`/admin/productos/${productId}`);
+  revalidatePath("/");
 }
 
 export async function setPrimaryImage(imageId: number, productId: number) {
+  await requireAdmin();
   await prisma.$transaction([
     prisma.productImage.updateMany({
       where: { productId, isPrimary: true },
@@ -51,21 +55,27 @@ export async function setPrimaryImage(imageId: number, productId: number) {
     }),
   ]);
   revalidatePath(`/admin/productos/${productId}`);
+  revalidatePath("/");
 }
 
 export async function deleteImage(imageId: number, productId: number) {
+  await requireAdmin();
   const image = await prisma.productImage.findUnique({ where: { id: imageId } });
   if (!image) return;
 
   await prisma.productImage.delete({ where: { id: imageId } });
 
   const filepath = path.join(process.cwd(), "public", image.url);
-  try { await fs.unlink(filepath); } catch {}
+  try {
+    await fs.unlink(filepath);
+  } catch {}
 
   revalidatePath(`/admin/productos/${productId}`);
+  revalidatePath("/");
 }
 
 export async function reorderImages(productId: number, imageIds: number[]) {
+  await requireAdmin();
   for (let i = 0; i < imageIds.length; i++) {
     await prisma.productImage.update({
       where: { id: imageIds[i] },
@@ -73,4 +83,5 @@ export async function reorderImages(productId: number, imageIds: number[]) {
     });
   }
   revalidatePath(`/admin/productos/${productId}`);
+  revalidatePath("/");
 }

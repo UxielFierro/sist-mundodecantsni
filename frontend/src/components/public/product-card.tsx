@@ -24,21 +24,28 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   const otherPriced = pricedVariants.filter(
     (v) => v.presentation.slug !== "5ml" && v.presentation.slug !== "10ml"
   );
+  const displayPriced = [
+    ...(v5 ? [{ label: "5ml", price: Number(v5.costs[0].finalPrice), id: v5.id }] : []),
+    ...(v10 ? [{ label: "10ml", price: Number(v10.costs[0].finalPrice), id: v10.id }] : []),
+    ...otherPriced.slice(0, v5 || v10 ? 1 : 2).map((v) => ({
+      label: v.presentation.name,
+      price: Number(v.costs[0].finalPrice),
+      id: v.id,
+    })),
+  ];
+
   const hasStock = product.variants.some((v) => (v.globalInventory?.quantity ?? 0) > 0);
 
   return (
-    <Link
-      href={`/perfume/${product.slug}`}
-      className="group block"
-    >
-      <div className="aspect-[4/5] bg-gradient-to-b from-stone-50 to-stone-100/80 rounded-xl overflow-hidden relative mb-3">
+    <Link href={`/perfume/${product.slug}`} className="group block">
+      <div className="aspect-[4/5] bg-gradient-to-b from-stone-50 to-stone-100/90 rounded-2xl overflow-hidden relative mb-3 border border-stone-200/60 group-hover:border-gold/40 group-hover:shadow-lg group-hover:shadow-gold/5 transition-all duration-300">
         {product.images[0] ? (
           <Image
             src={product.images[0].url}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 250px"
-            className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+            className="object-contain p-3.5 transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -55,40 +62,31 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </div>
         )}
       </div>
+
       <div className="space-y-1 px-0.5">
         {product.brand && (
-          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.15em]">
+          <p className="text-[10px] text-muted-foreground/75 uppercase tracking-[0.15em] truncate">
             {product.brand.name}
           </p>
         )}
-        <h3 className="font-medium text-sm leading-snug line-clamp-2 group-hover:text-gold transition-colors duration-300">
+        <h3 className="font-medium text-sm leading-snug line-clamp-2 text-stone-900 group-hover:text-gold transition-colors duration-300">
           {product.name}
         </h3>
         {product.olfactoryNotes && (
-          <p className="text-[10px] text-muted-foreground/50 italic leading-tight line-clamp-1">
+          <p className="text-[10px] text-muted-foreground/60 italic leading-tight line-clamp-1">
             {product.olfactoryNotes}
           </p>
         )}
-        <div className="flex items-center gap-2 pt-0.5">
-          {v5?.costs[0] && (
-            <span className="text-xs font-medium text-gold">
-              5ml {formatCurrency(Number(v5.costs[0].finalPrice))}
-            </span>
-          )}
-          {v5?.costs[0] && v10?.costs[0] && (
-            <span className="text-stone-300 text-xs">·</span>
-          )}
-          {v10?.costs[0] && (
-            <span className="text-xs font-medium text-gold">
-              10ml {formatCurrency(Number(v10.costs[0].finalPrice))}
-            </span>
-          )}
-          {otherPriced.slice(0, 2).map((v) => (
-            <span key={v.id} className="text-xs font-medium text-gold">
-              {v.presentation.name} {formatCurrency(Number(v.costs[0].finalPrice))}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pt-0.5">
+          {displayPriced.map((item, idx) => (
+            <span key={item.id} className="inline-flex items-center gap-1.5 text-xs font-medium text-gold">
+              {idx > 0 && <span className="text-stone-300">·</span>}
+              <span>
+                {item.label} {formatCurrency(item.price)}
+              </span>
             </span>
           ))}
-          {pricedVariants.length === 0 && (
+          {displayPriced.length === 0 && (
             <span className="text-[10px] text-muted-foreground/60 italic">Consultar precio</span>
           )}
         </div>

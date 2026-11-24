@@ -38,7 +38,7 @@ export default async function SearchPage({
           include: {
             category: true,
             brand: true,
-            images: { take: 1, orderBy: { sortOrder: "asc" } },
+            images: { take: 1, orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }] },
             variants: {
               where: { active: true },
               include: {

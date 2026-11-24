@@ -3,7 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { SearchBar } from "./search-bar";
 import { MobileNav } from "./mobile-nav";
-import { FileDown } from "lucide-react";
+import { FileDown, ChevronDown } from "lucide-react";
 
 export async function PublicHeader() {
   const categories = await prisma.category.findMany({
@@ -13,8 +13,11 @@ export async function PublicHeader() {
     orderBy: { name: "asc" },
   });
 
-  const leftCats = categories.slice(0, Math.ceil(categories.length / 2));
-  const rightCats = categories.slice(Math.ceil(categories.length / 2));
+  // Show up to 4 categories directly in desktop nav; put extras in a neat "Más" dropdown
+  const primaryCats = categories.slice(0, 4);
+  const extraCats = categories.slice(4);
+  const leftCats = primaryCats.slice(0, Math.ceil(primaryCats.length / 2));
+  const rightCats = primaryCats.slice(Math.ceil(primaryCats.length / 2));
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border/50">
@@ -24,7 +27,7 @@ export async function PublicHeader() {
           <nav className="hidden lg:flex items-center gap-6 flex-1">
             <Link
               href="/"
-              className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300"
+              className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300 whitespace-nowrap"
             >
               Inicio
             </Link>
@@ -32,7 +35,7 @@ export async function PublicHeader() {
               <Link
                 key={cat.slug}
                 href={`/categoria/${cat.slug}`}
-                className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300"
+                className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300 whitespace-nowrap"
               >
                 {cat.name}
               </Link>
@@ -59,19 +62,43 @@ export async function PublicHeader() {
           </Link>
 
           {/* Desktop nav — right side */}
-          <div className="hidden lg:flex items-center gap-6 flex-1 justify-end">
+          <div className="hidden lg:flex items-center gap-5 flex-1 justify-end">
             {rightCats.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/categoria/${cat.slug}`}
-                className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300"
+                className="text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300 whitespace-nowrap"
               >
                 {cat.name}
               </Link>
             ))}
+            {extraCats.length > 0 && (
+              <div className="relative group">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300 py-2"
+                >
+                  Más
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+                <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 absolute right-0 top-full pt-1 w-48 z-50">
+                  <div className="bg-white border border-stone-200 rounded-xl shadow-lg py-1.5">
+                    {extraCats.map((cat) => (
+                      <Link
+                        key={cat.slug}
+                        href={`/categoria/${cat.slug}`}
+                        className="block px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 hover:text-gold transition-colors"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             <a
               href="/catalogo.pdf"
-              className="text-xs uppercase tracking-[0.15em] text-gold hover:text-gold/80 transition-colors duration-300 flex items-center gap-1"
+              className="text-xs uppercase tracking-[0.15em] text-gold hover:text-gold/80 transition-colors duration-300 flex items-center gap-1 whitespace-nowrap"
             >
               <FileDown className="h-3.5 w-3.5" />
               PDF

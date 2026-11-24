@@ -4,6 +4,7 @@ import { formatCurrency, isSCCode } from "@/lib/utils";
 import { UpdateProductForm } from "@/components/admin/forms/product-update-form";
 import { AddVariantForm } from "@/components/admin/forms/add-variant-form";
 import { ProductImageUpload } from "@/components/admin/product-image-upload";
+import { SocialCardGenerator } from "@/components/admin/social-card-generator";
 import { updateProductCodigo } from "@/server/actions/products";
 import { assignNextMDNCode } from "@/server/actions/variants";
 import Link from "next/link";
@@ -40,7 +41,7 @@ export default async function ProductDetailPage({
         },
         orderBy: { codigo: "asc" },
       },
-      images: { orderBy: { sortOrder: "asc" } },
+      images: { orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }] },
     },
   });
 
@@ -166,6 +167,24 @@ export default async function ProductDetailPage({
               isPrimary: img.isPrimary,
               sortOrder: img.sortOrder,
             }))}
+          />
+          <SocialCardGenerator
+            product={{
+              name: product.name,
+              slug: product.slug,
+              brandName: product.brand?.name ?? null,
+              categoryName: product.category?.name ?? null,
+              olfactoryNotes: product.olfactoryNotes,
+              description: product.description,
+              imageUrl: product.images[0]?.url ?? null,
+              variants: product.variants
+                .filter((v) => v.active && v.costs[0])
+                .map((v) => ({
+                  name: v.presentation.name,
+                  price: Number(v.costs[0].finalPrice),
+                  inStock: (v.globalInventory?.quantity ?? 0) > 0,
+                })),
+            }}
           />
         </div>
       </div>
