@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { createSalesReportExcel } from "@/lib/excel";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
   const reports = await prisma.salesReport.findMany({
     orderBy: { createdAt: "desc" },
     include: {

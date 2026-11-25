@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { MessageCircle, Camera, Droplets, Check } from "lucide-react";
+import { MessageCircle, Camera, Droplets, Check, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
+import { useCart, WHATSAPP_NUMBER } from "./cart-context";
 
 interface ImageItem {
   id: number;
@@ -24,6 +26,7 @@ export function PerfumeDetailClient({
   product,
 }: {
   product: {
+    slug: string;
     name: string;
     brandName: string | null;
     categoryName: string | null;
@@ -36,6 +39,7 @@ export function PerfumeDetailClient({
     variants: VariantItem[];
   };
 }) {
+  const { addItem, openCart } = useCart();
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const firstAvailable =
     product.variants.find((v) => v.stock > 0 && v.price !== null) ?? product.variants[0] ?? null;
@@ -48,14 +52,40 @@ export function PerfumeDetailClient({
     product.variants.find((v) => v.id === selectedVariantId) ?? firstAvailable;
 
   const whatsappMessage = selectedVariant
-    ? `Hola, me interesa ${product.name} en presentación ${selectedVariant.presentationName}${
-        selectedVariant.price ? ` (${formatCurrency(selectedVariant.price)})` : ""
+    ? `Hola, me interesa ${product.name} (${selectedVariant.presentationName}) [${selectedVariant.codigo}]${
+        selectedVariant.price ? ` — ${formatCurrency(selectedVariant.price)}` : ""
       } que vi en su catálogo. ¿Tienen disponibilidad?`
     : `Hola, me interesa ${product.name} que vi en su catálogo. ¿Tienen disponibilidad?`;
 
-  const whatsappUrl = `https://wa.me/message/7ZODFUDVVJZSH1?text=${encodeURIComponent(
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     whatsappMessage
   )}`;
+
+  const canAddSelected = Boolean(selectedVariant && selectedVariant.stock > 0);
+
+  function handleAddToCart() {
+    if (!selectedVariant) return;
+    if (selectedVariant.stock <= 0) {
+      toast.error("Esta presentación está agotada por el momento");
+      return;
+    }
+    addItem({
+      variantId: selectedVariant.id,
+      codigo: selectedVariant.codigo,
+      productName: product.name,
+      brandName: product.brandName,
+      presentationName: selectedVariant.presentationName,
+      price: selectedVariant.price ?? 0,
+      imageUrl: product.images[0]?.url ?? null,
+      slug: product.slug,
+    });
+    toast.success(`Agregado: ${product.name} (${selectedVariant.presentationName})`, {
+      action: {
+        label: "Ver pedido",
+        onClick: () => openCart(),
+      },
+    });
+  }
 
   const showSprayGuide = !product.isSupply && !product.isFullBottle;
 
@@ -241,44 +271,66 @@ export function PerfumeDetailClient({
           )}
 
           {/* Desktop Action Buttons */}
-          <div className="hidden md:block mt-auto space-y-3 pt-8 border-t border-border/60">
+          <div className="hidden md:block mt-auto space-y-2.5 pt-8 border-t border-border/60">
+            {selectedVariant && (
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={!canAddSelected}
+                className="flex items-center justify-center gap-2 bg-stone-950 text-white px-6 py-4 text-sm font-medium hover:bg-stone-800 disabled:opacity-45 disabled:cursor-not-allowed transition-all duration-300 w-full tracking-wide rounded-xl shadow-sm"
+              >
+                <ShoppingBag className="h-5 w-5 text-gold" />
+                {canAddSelected
+                  ? `Agregar ${selectedVariant.presentationName} a mi pedido`
+                  : "Presentación agotada"}
+              </button>
+            )}
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-4 text-sm font-medium hover:bg-[#20bd5a] transition-all duration-300 w-full tracking-wide rounded-xl shadow-sm hover:shadow-md"
+              className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-3.5 text-sm font-medium hover:bg-[#20bd5a] transition-all duration-300 w-full tracking-wide rounded-xl shadow-sm hover:shadow-md"
             >
               <MessageCircle className="h-5 w-5" />
               {selectedVariant
-                ? `Pedir ${selectedVariant.presentationName} por WhatsApp`
+                ? `Pedir solo este (${selectedVariant.presentationName}) por WhatsApp`
                 : "Consultar disponibilidad por WhatsApp"}
             </a>
             <a
               href="https://www.instagram.com/mundodecants_nicaragua"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-stone-100 text-stone-800 border border-border px-6 py-3.5 text-sm font-medium hover:bg-stone-200 transition-all duration-300 w-full tracking-wide rounded-xl"
+              className="flex items-center justify-center gap-2 bg-stone-100 text-stone-800 border border-border px-6 py-3 text-xs font-medium hover:bg-stone-200 transition-all duration-300 w-full tracking-wide rounded-xl"
             >
-              <Camera className="h-5 w-5" />
+              <Camera className="h-4 w-4" />
               Ver en Instagram
             </a>
           </div>
         </div>
       </div>
 
-      {/* Sticky Mobile Buy Button */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-border/50 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] pb-7">
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-3.5 text-[13px] font-semibold uppercase tracking-wide hover:bg-[#20bd5a] transition-colors w-full rounded-xl shadow-lg"
-        >
-          <MessageCircle className="h-5 w-5" />
-          {selectedVariant
-            ? `Lo quiero (${selectedVariant.presentationName})`
-            : "Lo quiero"}
-        </a>
+      {/* Sticky Mobile Buy Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 p-3.5 bg-white/95 backdrop-blur-md border-t border-border/50 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] pb-6">
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={!canAddSelected}
+            className="flex items-center justify-center gap-1.5 bg-stone-950 text-white px-4 py-3.5 text-xs font-semibold uppercase tracking-wide hover:bg-stone-800 disabled:opacity-45 transition-colors rounded-xl shadow-md"
+          >
+            <ShoppingBag className="h-4 w-4 text-gold" />
+            {canAddSelected ? "Agregar" : "Agotado"}
+          </button>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 bg-[#25D366] text-white px-4 py-3.5 text-xs font-semibold uppercase tracking-wide hover:bg-[#20bd5a] transition-colors rounded-xl shadow-md"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Pedir ya
+          </a>
+        </div>
       </div>
     </>
   );

@@ -5,16 +5,11 @@ import { UpdateProductForm } from "@/components/admin/forms/product-update-form"
 import { AddVariantForm } from "@/components/admin/forms/add-variant-form";
 import { ProductImageUpload } from "@/components/admin/product-image-upload";
 import { SocialCardGenerator } from "@/components/admin/social-card-generator";
-import { updateProductCodigo } from "@/server/actions/products";
+import { BottlePricingCalculator } from "@/components/admin/bottle-pricing-calculator";
+import { SetPriceForm } from "@/app/admin/precios/_components/set-price-form";
+import { PriceHistoryButton } from "@/app/admin/precios/_components/price-history-button";
 import { assignNextMDNCode } from "@/server/actions/variants";
 import Link from "next/link";
-
-async function handleUpdateProductCodigo(formData: FormData) {
-  "use server";
-  const id = Number(formData.get("id"));
-  const codigo = String(formData.get("codigo") ?? "");
-  if (id && codigo) await updateProductCodigo(id, codigo);
-}
 
 async function handleAssignMDN(formData: FormData) {
   "use server";
@@ -29,7 +24,7 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
   const product = await prisma.product.findUnique({
-    where: { id: parseInt(id) },
+    where: { id: parseInt(id, 10) },
     include: {
       category: true,
       brand: true,
@@ -39,7 +34,7 @@ export default async function ProductDetailPage({
           costs: { orderBy: { effectiveDate: "desc" }, take: 1 },
           globalInventory: true,
         },
-        orderBy: { codigo: "asc" },
+        orderBy: { presentation: { sortOrder: "asc" } },
       },
       images: { orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }] },
     },
@@ -47,14 +42,19 @@ export default async function ProductDetailPage({
 
   if (!product) notFound();
 
-  const [categories, brands, presentations] = await Promise.all([
+  const [categories, brands, presentations, config] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.presentation.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.systemConfig.findFirst(),
   ]);
 
+  const defaultSupplies = Number(config?.standardSuppliesCost ?? 733);
+  const defaultShipping = Number(config?.standardShippingCost ?? 185);
+  const posFeePercentage = Number(config?.posFeePercentage ?? 7);
+
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-6xl">
       <div className="flex items-center gap-2 mb-4">
         <Link href="/admin/productos" className="text-xs text-muted-foreground hover:text-foreground">
           Productos
@@ -66,7 +66,9 @@ export default async function ProductDetailPage({
             {product.codigo}
           </span>
           {isSCCode(product.codigo) && (
-            <span className="text-[9px] font-medium text-yellow-700 bg-yellow-100 px-1 py-0.5 rounded">SC</span>
+            <span className="text-[9px] font-medium text-yellow-700 bg-yellow-100 px-1 py-0.5 rounded">
+              SC
+            </span>
           )}
         </span>
       </div>
@@ -75,13 +77,13 @@ export default async function ProductDetailPage({
         <div className="xl:col-span-2 space-y-4">
           <UpdateProductForm
             productId={product.id}
-              product={{
-                name: product.name,
-                categoryId: product.categoryId,
-                brandId: product.brandId,
-                description: product.description,
-                olfactoryNotes: product.olfactoryNotes,
-                notes: product.notes,
+            product={{
+              name: product.name,
+              categoryId: product.categoryId,
+              brandId: product.brandId,
+              description: product.description,
+              olfactoryNotes: product.olfactoryNotes,
+              notes: product.notes,
               isSupply: product.isSupply,
               isFullBottle: product.isFullBottle,
               showInCatalog: product.showInCatalog,
@@ -91,8 +93,35 @@ export default async function ProductDetailPage({
           />
 
           <div className="bg-card border rounded-xl overflow-hidden">
-            <div className="px-4 py-2.5 border-b flex items-center justify-between">
+            <div className="px-4 py-3 border-b flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-semibold text-sm">Variantes ({product.variants.length})</h2>
+              {product.variants.length > 0 && (
+                <BottlePricingCalculator
+                  products={[
+                    {
+                      id: product.id,
+                      name: product.name,
+                      codigo: product.codigo,
+                      variants: product.variants
+                        .filter((v) => v.active)
+                        .map((v) => ({
+                          id: v.id,
+                          codigo: v.codigo,
+                          presentationName: v.presentation.name,
+                          unitType: v.presentation.unitType,
+                          unitValue: Number(v.presentation.unitValue ?? v.presentation.quantity ?? 1),
+                          currentPrice: v.costs[0] ? Number(v.costs[0].finalPrice) : null,
+                        })),
+                    },
+                  ]}
+                  fixedProductId={product.id}
+                  defaultSuppliesCost={defaultSupplies}
+                  defaultShippingCost={defaultShipping}
+                  posFeePercentage={posFeePercentage}
+                  buttonLabel="Calcular desde Frasco"
+                  compact
+                />
+              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
@@ -100,15 +129,18 @@ export default async function ProductDetailPage({
                   <tr>
                     <th className="text-left px-3 py-2 font-medium">Código</th>
                     <th className="text-left px-3 py-2 font-medium">Presentación</th>
-                    <th className="text-right px-3 py-2 font-medium">Costo</th>
+                    <th className="text-right px-3 py-2 font-medium">Neto</th>
                     <th className="text-right px-3 py-2 font-medium">Precio</th>
                     <th className="text-right px-3 py-2 font-medium">Stock</th>
                     <th className="text-center px-3 py-2 font-medium">Estado</th>
+                    <th className="text-center px-3 py-2 font-medium">Precio</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {product.variants.map((variant) => {
                     const cost = variant.costs[0];
+                    const netCost = cost ? Number(cost.netCost ?? 0) : null;
+                    const finalPrice = cost ? Number(cost.finalPrice) : null;
                     return (
                       <tr key={variant.id} className="hover:bg-muted/20">
                         <td className="px-3 py-2">
@@ -116,10 +148,15 @@ export default async function ProductDetailPage({
                             <span className="font-mono">{variant.codigo}</span>
                             {isSCCode(variant.codigo) ? (
                               <>
-                                <span className="text-[9px] font-medium text-yellow-700 bg-yellow-100 px-1 py-0.5 rounded">SC</span>
+                                <span className="text-[9px] font-medium text-yellow-700 bg-yellow-100 px-1 py-0.5 rounded">
+                                  SC
+                                </span>
                                 <form action={handleAssignMDN} className="inline-flex">
                                   <input type="hidden" name="variantId" value={variant.id} />
-                                  <button type="submit" className="text-[9px] text-primary hover:underline whitespace-nowrap">
+                                  <button
+                                    type="submit"
+                                    className="text-[9px] text-primary hover:underline whitespace-nowrap"
+                                  >
                                     Oficializar
                                   </button>
                                 </form>
@@ -127,18 +164,50 @@ export default async function ProductDetailPage({
                             ) : null}
                           </div>
                         </td>
-                        <td className="px-3 py-2">{variant.presentation.name}</td>
+                        <td className="px-3 py-2 font-medium">{variant.presentation.name}</td>
+                        <td className="px-3 py-2 text-right text-muted-foreground">
+                          {netCost !== null ? formatCurrency(netCost) : "-"}
+                        </td>
+                        <td className="px-3 py-2 text-right font-semibold">
+                          {finalPrice !== null ? formatCurrency(finalPrice) : "-"}
+                        </td>
                         <td className="px-3 py-2 text-right">
-                          {cost ? formatCurrency(Number(cost.unitCost) + Number(cost.suppliesCost) + Number(cost.shippingCost)) : "-"}
+                          {variant.globalInventory?.quantity ?? 0}
                         </td>
-                        <td className="px-3 py-2 text-right font-medium">
-                          {cost ? formatCurrency(Number(cost.finalPrice)) : "-"}
-                        </td>
-                        <td className="px-3 py-2 text-right">{variant.globalInventory?.quantity ?? 0}</td>
                         <td className="px-3 py-2 text-center">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${variant.active ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                              variant.active
+                                ? "bg-green-100 text-green-700"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
                             {variant.active ? "Activo" : "Inactivo"}
                           </span>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-center gap-1">
+                            <SetPriceForm
+                              variantId={variant.id}
+                              productName={product.name}
+                              presentationName={variant.presentation.name}
+                              presentationMl={Number(
+                                variant.presentation.unitValue ?? variant.presentation.quantity ?? 1
+                              )}
+                              unitType={variant.presentation.unitType}
+                              defaultSuppliesCost={defaultSupplies}
+                              defaultShippingCost={defaultShipping}
+                              posFeePercentage={posFeePercentage}
+                              currentUnitCost={cost ? Number(cost.unitCost) : null}
+                              currentFinalPrice={finalPrice}
+                              compact
+                            />
+                            <PriceHistoryButton
+                              variantId={variant.id}
+                              productName={product.name}
+                              presentationName={variant.presentation.name}
+                            />
+                          </div>
                         </td>
                       </tr>
                     );

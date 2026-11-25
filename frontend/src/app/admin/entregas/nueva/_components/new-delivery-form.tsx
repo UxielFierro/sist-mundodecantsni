@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { createDelivery } from "@/server/actions/deliveries";
+import { toast } from "sonner";
 import { Search, Plus, Trash2, ShoppingCart } from "lucide-react";
 
 interface VariantData {
@@ -62,9 +63,14 @@ export function NewDeliveryForm({
   const defaultPeriod = `Mes de ${new Date().toLocaleString("es", { month: "long" })} ${new Date().getFullYear()}`;
 
   async function handleSubmit(formData: FormData) {
-    await createDelivery(formData);
-    router.push("/admin/entregas");
-    router.refresh();
+    try {
+      await createDelivery(formData);
+      toast.success("Entrega registrada correctamente");
+      router.push("/admin/entregas");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al registrar la entrega");
+    }
   }
 
   function handleAdd(v: VariantData) {

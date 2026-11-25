@@ -58,23 +58,25 @@ export async function createGiftConversion(formData: FormData) {
   });
 
   if (!variant) throw new Error("Variante no encontrada");
-  if (!variant.presentation.quantity) throw new Error("La presentación no tiene cantidad definida");
+  const variantMl = Number(variant.presentation.unitValue ?? variant.presentation.quantity ?? 0);
+  if (!variantMl || variantMl <= 0) throw new Error("La presentación no tiene mililitros definidos");
 
   const giftPres = await prisma.presentation.findUnique({
     where: { id: parsed.giftPresentationId },
   });
-  if (!giftPres?.quantity) throw new Error("Presentación de regalo no válida");
+  const giftMl = Number(giftPres?.unitValue ?? giftPres?.quantity ?? 0);
+  if (!giftPres || !giftMl || giftMl <= 0) throw new Error("Presentación de regalo no válida");
 
-  const unitsToTake = Math.ceil(parsed.quantityMl / Number(variant.presentation.quantity));
+  const unitsToTake = Math.ceil(parsed.quantityMl / variantMl);
   const currentStock = variant.globalInventory?.quantity ?? 0;
 
   if (unitsToTake > currentStock) {
     throw new Error(
-      `Stock insuficiente. Disponible: ${currentStock} unidades (${currentStock * Number(variant.presentation.quantity)}ml), necesitas: ${unitsToTake} unidades (${parsed.quantityMl}ml)`
+      `Stock insuficiente. Disponible: ${currentStock} unidades (${currentStock * variantMl}ml), necesitas: ${unitsToTake} unidades (${parsed.quantityMl}ml)`
     );
   }
 
-  const estimatedUnits = Math.floor(parsed.quantityMl / Number(giftPres.quantity));
+  const estimatedUnits = Math.floor(parsed.quantityMl / giftMl);
 
   await prisma.$transaction(async (tx) => {
     await tx.globalInventory.update({
@@ -106,6 +108,8 @@ export async function createGiftConversion(formData: FormData) {
   });
 
   revalidatePath("/admin/regalias");
+  revalidatePath("/admin/inventario");
+  revalidatePath("/admin");
 }
 
 export type GiftConversionList = Awaited<ReturnType<typeof getGiftConversions>>;

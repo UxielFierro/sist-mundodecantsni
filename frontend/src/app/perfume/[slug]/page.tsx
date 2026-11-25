@@ -134,6 +134,7 @@ export default async function PerfumeDetailPage({
 
           <PerfumeDetailClient
             product={{
+              slug: product.slug,
               name: product.name,
               brandName: product.brand?.name ?? null,
               categoryName: product.category?.name ?? null,

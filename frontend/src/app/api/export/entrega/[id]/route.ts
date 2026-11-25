@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 
@@ -6,9 +7,19 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   const { id } = await params;
+  const deliveryId = parseInt(id, 10);
+  if (!Number.isFinite(deliveryId) || deliveryId <= 0) {
+    return NextResponse.json({ error: "ID de entrega inválido" }, { status: 400 });
+  }
+
   const delivery = await prisma.locationDelivery.findUnique({
-    where: { id: parseInt(id) },
+    where: { id: deliveryId },
     include: {
       location: true,
       items: {

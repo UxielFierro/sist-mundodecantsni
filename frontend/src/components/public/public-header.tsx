@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { SearchBar } from "./search-bar";
 import { MobileNav } from "./mobile-nav";
+import { CartButton } from "./cart-button";
 import { FileDown, ChevronDown } from "lucide-react";
 
 export async function PublicHeader() {
@@ -104,11 +105,13 @@ export async function PublicHeader() {
               PDF
             </a>
             <SearchBar />
+            <CartButton />
           </div>
 
           {/* Mobile controls */}
           <div className="flex items-center gap-1 lg:hidden">
             <SearchBar />
+            <CartButton />
             <MobileNav
               categories={categories.map((c) => ({
                 slug: c.slug,

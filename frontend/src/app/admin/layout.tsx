@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { AdminSidebar } from "./_components/admin-sidebar";
+import { AdminHelpDrawer } from "./_components/admin-help-drawer";
 import { Toaster } from "sonner";
 
 export default async function AdminLayout({
@@ -22,6 +23,7 @@ export default async function AdminLayout({
           {children}
         </div>
       </main>
+      <AdminHelpDrawer />
       <Toaster richColors position="top-right" />
     </div>
   );

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { createSalesReport } from "@/server/actions/sales-reports";
+import { toast } from "sonner";
 
 interface VariantData {
   id: number;
@@ -33,9 +34,14 @@ export function NewSalesReportForm({
   const defaultPeriod = `Mes de ${new Date().toLocaleString("es", { month: "long" })} ${new Date().getFullYear()}`;
 
   async function handleSubmit(formData: FormData) {
-    await createSalesReport(formData);
-    router.push("/admin/reportes");
-    router.refresh();
+    try {
+      await createSalesReport(formData);
+      toast.success("Reporte de ventas registrado correctamente");
+      router.push("/admin/reportes");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al registrar el reporte de ventas");
+    }
   }
 
   function handleQtyChange(variantId: number, unitPrice: number) {

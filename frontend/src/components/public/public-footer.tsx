@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 import { MessageCircle, Camera, Music2, Globe, MapPin } from "lucide-react";
 
 const socialLinks = [
@@ -24,14 +25,19 @@ const socialLinks = [
   },
 ];
 
-const categoryLinks = [
-  { name: "Nicho", href: "/categoria/nicho" },
-  { name: "Diseñador", href: "/categoria/disenador" },
-  { name: "Árabe", href: "/categoria/arabe" },
-  { name: "Damas", href: "/categoria/damas" },
-];
+export async function PublicFooter() {
+  const categories = await prisma.category.findMany({
+    where: {
+      products: { some: { active: true, showInCatalog: true } },
+    },
+    orderBy: { name: "asc" },
+  });
 
-export function PublicFooter() {
+  const categoryLinks = categories.map((cat) => ({
+    name: cat.name,
+    href: `/categoria/${cat.slug}`,
+  }));
+
   return (
     <footer className="border-t bg-stone-50/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 lg:py-16">

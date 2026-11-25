@@ -180,7 +180,7 @@ export default async function HomePage() {
                       <ChevronRight className="h-4 w-4" />
                     </Link>
                     <a
-                      href={`https://wa.me/message/7ZODFUDVVJZSH1?text=${encodeURIComponent(
+                      href={`https://wa.me/50577892532?text=${encodeURIComponent(
                         `Hola, me interesa ${heroProduct.name} que vi destacado en su catálogo.`
                       )}`}
                       target="_blank"

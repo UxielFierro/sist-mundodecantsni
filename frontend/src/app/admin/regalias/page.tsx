@@ -31,8 +31,11 @@ export default async function RegaliasPage() {
       orderBy: { name: "asc" },
     }),
     prisma.presentation.findMany({
-      where: { unitType: "ml", quantity: { lte: 5 } },
-      orderBy: { quantity: "asc" },
+      where: {
+        unitType: "ml",
+        OR: [{ unitValue: { lte: 5 } }, { unitValue: null, quantity: { lte: 5 } }],
+      },
+      orderBy: [{ unitValue: "asc" }, { sortOrder: "asc" }],
     }),
   ]);
 

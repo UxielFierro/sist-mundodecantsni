@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createGiftConversion } from "@/server/actions/gift-conversion";
 
@@ -11,7 +12,13 @@ interface ProductItem {
   brand: { name: string } | null;
   variants: {
     id: number;
-    presentation: { id: number; name: string; quantity: number | null; unitType: string | null };
+    presentation: {
+      id: number;
+      name: string;
+      quantity: number | null;
+      unitValue?: number | null;
+      unitType: string | null;
+    };
     globalInventory: { quantity: number } | null;
   }[];
 }
@@ -21,8 +28,9 @@ export function NewGiftConversionForm({
   presentations,
 }: {
   products: ProductItem[];
-  presentations: { id: number; name: string; quantity: number | null }[];
+  presentations: { id: number; name: string; quantity: number | null; unitValue?: number | null }[];
 }) {
+  const router = useRouter();
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [quantityMl, setQuantityMl] = useState("");
@@ -33,12 +41,16 @@ export function NewGiftConversionForm({
   const selectedProduct = products.find((p) => p.id === parseInt(selectedProductId));
   const selectedVariant = selectedProduct?.variants.find((v) => v.id === parseInt(selectedVariantId));
 
+  const getPresMl = (p?: { unitValue?: number | null; quantity: number | null } | null) =>
+    Number(p?.unitValue ?? p?.quantity ?? 0);
+
+  const variantMl = getPresMl(selectedVariant?.presentation);
   const availableMl = selectedVariant
-    ? (selectedVariant.globalInventory?.quantity ?? 0) * (selectedVariant.presentation.quantity ?? 0)
+    ? (selectedVariant.globalInventory?.quantity ?? 0) * variantMl
     : 0;
 
   const maxUnits = selectedVariant ? (selectedVariant.globalInventory?.quantity ?? 0) : 0;
-  const maxMl = selectedVariant ? maxUnits * (selectedVariant.presentation.quantity ?? 0) : 0;
+  const maxMl = selectedVariant ? maxUnits * variantMl : 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,6 +75,7 @@ export function NewGiftConversionForm({
       setQuantityMl("");
       setGiftPresentationId("");
       setReason("");
+      router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error al generar regalías");
     } finally {
@@ -71,9 +84,9 @@ export function NewGiftConversionForm({
   }
 
   const giftPres = presentations.find((p) => p.id === parseInt(giftPresentationId));
-  const estimatedUnits = giftPres?.quantity && quantityMl
-    ? Math.floor(parseInt(quantityMl) / giftPres.quantity)
-    : 0;
+  const giftPresMl = getPresMl(giftPres);
+  const estimatedUnits =
+    giftPresMl > 0 && quantityMl ? Math.floor(parseInt(quantityMl, 10) / giftPresMl) : 0;
 
   return (
     <form onSubmit={handleSubmit} className="bg-card border rounded-xl p-6 space-y-4">
@@ -116,7 +129,9 @@ export function NewGiftConversionForm({
             {selectedProduct.variants.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.presentation.name} — Stock: {v.globalInventory?.quantity ?? 0} uds
-                {v.presentation.quantity ? ` (${(v.globalInventory?.quantity ?? 0) * v.presentation.quantity}ml)` : ""}
+                {getPresMl(v.presentation) > 0
+                  ? ` (${(v.globalInventory?.quantity ?? 0) * getPresMl(v.presentation)}ml)`
+                  : ""}
               </option>
             ))}
           </select>
